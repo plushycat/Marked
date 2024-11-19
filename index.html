@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marked</title>
+    <link rel="stylesheet" href="styles/notes.css">
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="header-left">
+            <h1><b>Marked</b></h1>
+            <p>Simplicity in markdown note-taking.</p>
+        </div>
+        <button id="darkModeToggle" class="dark-mode-btn">🌙</button>
+    </header>
+
+    <main class="app-container">
+        <aside class="notes-sidebar">
+            <button id="newNoteButton">+ New Note</button>
+            <div id="notesList"></div>
+        </aside>
+
+        <section class="note-editor">
+            <textarea id="noteInput" placeholder="Write your markdown here..." rows="10"></textarea>
+            <div class="editor-buttons">
+                <button id="saveButton">Save Note</button>
+                <button id="deleteButton">Delete Note</button>
+                <button id="clearButton">Clear Note</button> <!-- Clear Note button -->
+                <button id="txtButton">Export as .txt</button> <!-- Export as txt button -->
+                <button id="mdButton">Export as .md</button> <!-- Export as md button -->
+            </div>
+            <div id="renderedNote" class="rendered-note"></div>
+            <div id="noteTimestamp" class="note-timestamp"></div> <!-- Timestamp display -->
+        </section>
+    </main>
+
+    <script src="scripts/notes.js"></script>
+</body>
+
+</html>
