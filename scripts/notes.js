@@ -122,6 +122,11 @@ function createNewNote() {
 // Markdown conversion
 function markdownToHtml(markdownText) {
     return markdownText
+        //Discord-style spoilers (||spoiler||)    
+        .replace(/\|\|([^|]+)\|\|/g, '<span class="spoiler">$1</span>')
+
+        // Handle HTML-style spoilers (<spoiler></spoiler>)
+        .replace(/<spoiler>(.*?)<\/spoiler>/g, '<span class="spoiler">$1</span>')   
         // Headings
         .replace(/^######\s?(.*)$/gm, '<h6>$1</h6>')
         .replace(/^#####\s?(.*)$/gm, '<h5>$1</h5>')
@@ -163,12 +168,13 @@ function markdownToHtml(markdownText) {
         // Images
         .replace(/!\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<img src="$2" alt="$1" />')
 
-        // Underline (keep it separate from other styles like bold)
-        .replace(/__(.*?)__/g, '<strong>$1</strong>')   // Bold (alt)
-        .replace(/<strong>(.*?)<\/strong><u>(.*?)<\/u>/g, '<strong>$1</strong><u>$2</u>') // Bold + Underline
-
-        // HTML tags
-        .replace(/<(b|i|em|strong|del|code|pre|blockquote|ul|ol|li|a|h[1-6])>(.*?)<\/\1>/g, '<$1>$2</$1>') // Sanitize supported tags
+        // Custom password tag parsing
+        // Custom password tag parsing with hover to reveal
+        .replace(/<password>(.*?)<\/password>/g, (match, content) => {
+            return `
+                <span class="password-content">${content}</span>
+            `;
+        })
 
         // Paragraphs for loose text (add missing new lines between blocks of text)
         .replace(/^(?!<[^>]+>|\s*[\-\*\+]\s|\d+\.\s|#|>|\s*$)(.+)$/gm, '<p>$1</p>');
@@ -194,6 +200,20 @@ document.getElementById('fileInput').addEventListener('change', function(event) 
     const file = event.target.files[0];
     if (file) {
         openFile(file);
+    }
+});
+
+// Password toggle functionality
+document.body.addEventListener('click', function(event) {
+    if (event.target.classList.contains('show-password')) {
+        const passwordContent = event.target.nextElementSibling;
+        if (passwordContent.style.display === 'none') {
+            passwordContent.style.display = 'block';
+            event.target.textContent = 'Hide Password';
+        } else {
+            passwordContent.style.display = 'none';
+            event.target.textContent = 'Show Password';
+        }
     }
 });
 

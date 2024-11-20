@@ -240,6 +240,45 @@ button:hover {
     transition: background-color 0.3s;
 }
 
+.password-container {
+    margin: 10px 0;
+}
+
+.password-content {
+    display: inline-block;
+    position: relative;
+    color: transparent; /* Hide the password by default */
+}
+
+.password-content::after {
+    content: " [*]";
+    font-size: 0.8em;
+    color: #888;
+}
+
+.password-content:hover {
+    color: black;  /* Show the password text when hovered */
+}
+
+.password-content:hover::after {
+    content: "";  /* Remove the "Hover to reveal" hint when text is visible */
+}
+
+/* Style the spoiler elements */
+.spoiler {
+    display: inline-block;
+    color: transparent; /* Hide content by default */
+    background-color: #000; /* Black background to mimic spoiler style */
+    border-radius: 3px;
+    cursor: pointer; /* Indicate the element is interactive */
+}
+
+/* Style for revealed spoilers */
+.spoiler.revealed {
+    color: black; /* Show the content when revealed */
+    background-color: transparent; /* Remove the black background */
+}
+
 /* Dark Mode Toggle Button */
 #darkModeToggle {
     background-color: #2196F3;
