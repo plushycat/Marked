@@ -3,8 +3,7 @@ try {
     notes = JSON.parse(localStorage.getItem('notes')) || [];
 } catch (e) {
     console.error("Error loading notes from localStorage:", e);
-    // Optional: You can reset the notes if an error occurs
-    localStorage.removeItem('notes'); // This will reset notes on error
+    localStorage.removeItem('notes');
 }
 
 let currentNoteId = null;
@@ -27,7 +26,7 @@ function renderNotesList() {
         // Add timestamp to the note item
         const timestamp = document.createElement('span');
         timestamp.className = 'note-timestamp';
-        timestamp.textContent = new Date(note.timestamp).toISOString();  // ISO format (e.g., "2024-11-20T12:34:56.789Z")
+        timestamp.textContent = new Date(note.timestamp).toISOString();  // ISO format
         noteItem.appendChild(timestamp);
 
         noteItem.addEventListener('click', () => loadNoteById(note.id));
@@ -56,7 +55,7 @@ function saveNote() {
         const note = notes.find(n => n.id === currentNoteId);
         if (note) {
             note.content = noteContent;
-            note.timestamp = Date.now(); // Update the timestamp when the note is edited
+            note.timestamp = Date.now(); // Update timestamp
         }
     }
     saveNotesToStorage();
@@ -116,10 +115,9 @@ function renderNote() {
 // Create a new note
 function createNewNote() {
     currentNoteId = null;
-    document.getElementById('noteInput').value = '';  // Clear the input field
-    renderNote();  // Clear and render the preview immediately
+    document.getElementById('noteInput').value = '';
+    renderNote();
 }
-
 
 // Markdown conversion
 function markdownToHtml(markdownText) {
@@ -175,15 +173,33 @@ function markdownToHtml(markdownText) {
         // Paragraphs for loose text (add missing new lines between blocks of text)
         .replace(/^(?!<[^>]+>|\s*[\-\*\+]\s|\d+\.\s|#|>|\s*$)(.+)$/gm, '<p>$1</p>');
 }
+// Handle file input for opening .txt and .md files
+function openFile(file) {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const fileContent = event.target.result;
+        document.getElementById('noteInput').value = fileContent;  // Set content in textarea
+        renderNote();  // Update preview
+    };
+    reader.readAsText(file);
+}
 
+// Handle file input button click
+document.getElementById('openFileButton').addEventListener('click', function() {
+    document.getElementById('fileInput').click();
+});
 
+// Event listener for file input change
+document.getElementById('fileInput').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        openFile(file);
+    }
+});
 
-/// Dark Mode Toggle
+// Dark Mode Toggle
 function toggleDarkMode() {
-    // Toggle the 'dark-mode' class on the body element
     document.body.classList.toggle('dark-mode');
-
-    // Save the dark mode setting to localStorage
     const isDarkMode = document.body.classList.contains('dark-mode');
     localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
 }
@@ -196,12 +212,9 @@ function initializeDarkMode() {
     }
 }
 
-// Event listener for the dark mode toggle button
+// Event listener for dark mode toggle
 document.addEventListener('DOMContentLoaded', function () {
-    // Initialize dark mode on page load
     initializeDarkMode();
-
-    // Attach event listener for the dark mode toggle button
     const darkModeToggleButton = document.getElementById('darkModeToggle');
     if (darkModeToggleButton) {
         darkModeToggleButton.addEventListener('click', toggleDarkMode);

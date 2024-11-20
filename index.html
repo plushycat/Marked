@@ -31,7 +31,12 @@
                 <button id="clearButton">Clear Note</button> <!-- Clear Note button -->
                 <button id="txtButton">Export as .txt</button> <!-- Export as txt button -->
                 <button id="mdButton">Export as .md</button> <!-- Export as md button -->
+                <!-- Open File Button -->
+                <button id="openFileButton">Open File</button>
             </div>
+            <!-- Hidden file input for opening .md or .txt files -->
+            <input type="file" id="fileInput" accept=".txt,.md" style="display: none;" />
+
             <div id="renderedNote" class="rendered-note"></div>
             <div id="noteTimestamp" class="note-timestamp"></div> <!-- Timestamp display -->
         </section>
