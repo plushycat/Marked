@@ -20,7 +20,7 @@ function renderNotesList() {
     notes.forEach(note => {
         const noteItem = document.createElement('div');
         noteItem.className = 'note-item';
-        noteItem.textContent = note.content.split('\n')[0] || 'Untitled Note';
+        noteItem.textContent = note.title || note.content.split('\n')[0] || 'Untitled Note'; // Show title if available
         noteItem.dataset.id = note.id;
 
         // Add timestamp to the note item
@@ -34,11 +34,13 @@ function renderNotesList() {
     });
 }
 
+
 // Load a note by ID
 function loadNoteById(noteId) {
     currentNoteId = noteId;
     const note = notes.find(n => n.id === noteId);
     if (note) {
+        document.getElementById('noteTitle').value = note.title || '';  // Set title field
         document.getElementById('noteInput').value = note.content;
         renderNote();
     }
@@ -47,14 +49,18 @@ function loadNoteById(noteId) {
 // Save or update the current note
 function saveNote() {
     const noteContent = document.getElementById('noteInput').value;
+    const noteTitle = document.getElementById('noteTitle').value.trim(); // Get title input value
+    const title = noteTitle || noteContent.split('\n')[0]; // Default to the first line of content if no title is provided
+
     if (!currentNoteId) {
-        const newNote = { id: Date.now(), content: noteContent, timestamp: Date.now() };
+        const newNote = { id: Date.now(), content: noteContent, title: title, timestamp: Date.now() };
         notes.push(newNote);
         currentNoteId = newNote.id;
     } else {
         const note = notes.find(n => n.id === currentNoteId);
         if (note) {
             note.content = noteContent;
+            note.title = title;  // Save the title
             note.timestamp = Date.now(); // Update timestamp
         }
     }
