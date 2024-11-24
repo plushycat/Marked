@@ -223,6 +223,94 @@ document.body.addEventListener('click', function(event) {
     }
 });
 
+// Add this function to your existing code
+
+function filterNotes() {
+
+    const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+
+    
+
+    // If search query is empty, render all notes
+
+    if (searchQuery === '') {
+
+        renderNotesList();
+
+        return;
+
+    }
+
+
+    // Filter notes based on search query
+
+    const filteredNotes = notes.filter(note => {
+
+        // Check if search query matches title or content
+
+        const titleMatch = note.title && note.title.toLowerCase().includes(searchQuery);
+
+        const contentMatch = note.content.toLowerCase().includes(searchQuery);
+
+        
+
+        return titleMatch || contentMatch;
+
+    });
+
+
+    // Render the filtered notes list
+
+    const notesList = document.getElementById('notesList');
+
+    notesList.innerHTML = '';
+
+    filteredNotes.forEach(note => {
+
+        const noteItem = document.createElement('div');
+
+        noteItem.className = 'note-item';
+
+        noteItem.textContent = note.title || note.content.split('\n')[0] || 'Untitled Note';
+
+        noteItem.dataset.id = note.id;
+
+
+        // Add timestamp to the note item
+
+        const timestamp = document.createElement('span');
+
+        timestamp.className = 'note-timestamp';
+
+        timestamp.textContent = new Date(note.timestamp).toISOString();
+
+        noteItem.appendChild(timestamp);
+
+
+        noteItem.addEventListener('click', () => loadNoteById(note.id));
+
+        notesList.appendChild(noteItem);
+
+    });
+
+}
+
+
+// Add event listener for search input
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    const searchInput = document.getElementById('searchInput');
+
+    if (searchInput) {
+
+        searchInput.addEventListener('input', filterNotes);
+
+    }
+
+});
+
+
 // Dark Mode Toggle
 function toggleDarkMode() {
     document.body.classList.toggle('dark-mode');

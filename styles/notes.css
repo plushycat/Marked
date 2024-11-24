@@ -240,6 +240,36 @@ button:hover {
     transition: background-color 0.3s;
 }
 
+#searchInput {
+    width: 100%; /* Full width of the sidebar */
+    padding: 12px; /* Match other input fields like #noteTitle */
+    font-size: 16px; /* Consistent font size */
+    border: 1px solid var(--border-color);
+    border-radius: 8px; /* Rounded corners like other elements */
+    background-color: var(--card-background);
+    color: var(--text-color);
+    margin-bottom: 15px;
+    box-sizing: border-box;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    outline: none; /* Remove default focus outline */
+}
+
+#searchInput:focus {
+    border-color: var(--button-background);
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.2); /* Soft glow matching button color */
+}
+
+/* Dark mode specific styling */
+body.dark-mode #searchInput {
+    background-color: var(--dark-card-background);
+    border-color: var(--dark-border-color);
+    color: var(--dark-text);
+}
+
+#searchInput::placeholder {
+    color: #888; /* Consistent placeholder color */
+}
+
 .password-container {
     margin: 10px 0;
 }
