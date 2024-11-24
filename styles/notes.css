@@ -294,6 +294,7 @@ body.dark-mode #searchInput {
     content: "";  /* Remove the "Hover to reveal" hint when text is visible */
 }
 
+
 /* Style the spoiler elements */
 .spoiler {
     display: inline-block;

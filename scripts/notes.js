@@ -126,13 +126,18 @@ function createNewNote() {
 }
 
 // Markdown conversion
+// Updated markdownToHtml function to fix the issue
 function markdownToHtml(markdownText) {
     return markdownText
-        //Discord-style spoilers (||spoiler||)    
+        // Preserve line breaks and spaces, especially for spoilers and passwords
+        .replace(/(?:\r\n|\r|\n)/g, '\n') // Normalize line endings to \n (if mixed)
+        
+        // Discord-style spoilers (||spoiler||)    
         .replace(/\|\|([^|]+)\|\|/g, '<span class="spoiler">$1</span>')
 
         // Handle HTML-style spoilers (<spoiler></spoiler>)
         .replace(/<spoiler>(.*?)<\/spoiler>/g, '<span class="spoiler">$1</span>')   
+        
         // Headings
         .replace(/^######\s?(.*)$/gm, '<h6>$1</h6>')
         .replace(/^#####\s?(.*)$/gm, '<h5>$1</h5>')
@@ -174,9 +179,8 @@ function markdownToHtml(markdownText) {
         // Images
         .replace(/!\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<img src="$2" alt="$1" />')
 
-        // Custom password tag parsing
         // Custom password tag parsing with hover to reveal
-        .replace(/<password>(.*?)<\/password>/g, (match, content) => {
+        .replace(/<ps>(.*?)<\/p>/g, (match, content) => {
             return `
                 <span class="password-content">${content}</span>
             `;
@@ -185,6 +189,7 @@ function markdownToHtml(markdownText) {
         // Paragraphs for loose text (add missing new lines between blocks of text)
         .replace(/^(?!<[^>]+>|\s*[\-\*\+]\s|\d+\.\s|#|>|\s*$)(.+)$/gm, '<p>$1</p>');
 }
+
 // Handle file input for opening .txt and .md files
 function openFile(file) {
     const reader = new FileReader();
