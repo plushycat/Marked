@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marked</title>
     <link rel="stylesheet" href="styles/notes.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@codemirror/view@6/dist/index.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@codemirror/theme-one-dark@6/dist/theme.css">
 </head>
 
 <body>
@@ -28,25 +30,31 @@
             <!-- Optional Note Title Input Field -->
             <input type="text" id="noteTitle" placeholder="Enter note title (optional)" />
 
-            <textarea id="noteInput" placeholder="Write your markdown here..." rows="10"></textarea>
+            <div id="markdownEditor" class="markdown-editor-container"></div>
 
             <div class="editor-buttons">
                 <button id="saveButton">Save Note</button>
                 <button id="deleteButton">Delete Note</button>
-                <button id="clearButton">Clear Note</button> <!-- Clear Note button -->
-                <button id="txtButton">Export as .txt</button> <!-- Export as txt button -->
-                <button id="mdButton">Export as .md</button> <!-- Export as md button -->
-                <!-- Open File Button -->
+                <button id="clearButton">Clear Note</button>
+                <button id="txtButton">Export as .txt</button>
+                <button id="mdButton">Export as .md</button>
                 <button id="openFileButton">Open File</button>
             </div>
             <!-- Hidden file input for opening .md or .txt files -->
             <input type="file" id="fileInput" accept=".txt,.md" style="display: none;" />
 
-            <div id="renderedNote" class="rendered-note"></div>
-            <div id="noteTimestamp" class="note-timestamp"></div> <!-- Timestamp display -->
+            <div id="renderedNote" class="rendered-note" style="display: none;"></div>
+            <div id="noteTimestamp" class="note-timestamp"></div>
         </section>
     </main>
 
+    <!-- CodeMirror JavaScript -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/state@6/dist/index.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/view@6/dist/index.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/basic-setup@0.20.0/dist/index.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/lang-markdown@6/dist/index.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/theme-one-dark@6/dist/theme.js"></script>
+    
     <script src="scripts/notes.js"></script>
 </body>
 

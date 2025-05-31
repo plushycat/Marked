@@ -107,66 +107,79 @@ header p {
 
 /* Notes Sidebar */
 .notes-sidebar {
-    flex: 1;
-    max-width: 320px;
+    flex: 0 0 320px; /* Fixed width instead of flex: 1 */
+    width: 320px;
     background-color: var(--card-background);
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
-    height: 70vh;
-    margin-right: 20px;
+    height: calc(100vh - 200px); /* Better height calculation */
+    position: sticky;
+    top: 20px;
+    box-sizing: border-box;
 }
 
 .notes-sidebar button {
     width: 100%;
-    padding: 12px 20px;
+    padding: 12px 16px; /* More consistent padding */
     font-size: 16px;
     border: none;
     border-radius: 8px;
     background-color: var(--button-background);
     color: white;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
     margin-bottom: 15px;
+    font-weight: 500;
+    min-height: 44px; /* Consistent button height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .notes-sidebar button:hover {
     background-color: var(--button-hover);
+    transform: translateY(-1px);
 }
 
 /* Note Item Styling */
 .note-item {
-    padding: 12px 20px;
-    margin: 5px 0;
+    padding: 14px 16px; /* More consistent padding */
+    margin: 8px 0;
     background-color: var(--card-background);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column; /* Stack title and timestamp */
+    gap: 6px;
+    box-sizing: border-box;
 }
 
 .note-item:hover {
     background-color: #f8d898;
-    color: white;
+    color: #333; /* Better contrast */
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .note-timestamp {
-    font-size: 0.8em;
+    font-size: 0.75rem;
     color: #888;
-    margin-left: 10px;
+    align-self: flex-end; /* Align to right */
+    margin: 0;
+    font-style: italic;
 }
 
 /* Note Editor */
 .note-editor {
-    flex: 2;
+    flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    width: 100%;
+    min-width: 0; /* Prevents overflow */
+    gap: 0; /* Remove gap, handle spacing individually */
 }
 
 /* Button Styling */
@@ -234,18 +247,30 @@ textarea {
 
 #noteTitle {
     width: 100%;
-    padding: 12px;
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 15px;
+    padding: 16px; /* More generous padding */
+    font-size: 20px; /* Larger, more prominent */
+    font-weight: 600; /* Bolder weight */
+    margin-bottom: 16px; /* Consistent spacing */
     border-radius: 8px;
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color); /* Thicker border for prominence */
     background-color: var(--card-background);
     color: var(--text-color);
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    line-height: 1.4;
+}
+
+#noteTitle:focus {
+    outline: none;
+    border-color: var(--button-background);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    transform: translateY(-1px);
 }
 
 #noteTitle::placeholder {
-    color: #bbb;
+    color: #999;
+    font-weight: 400;
+    font-style: italic;
 }
 
 #searchInput {
@@ -290,33 +315,149 @@ textarea {
     display: inline-block;
     position: relative;
     color: transparent;
+    background-color: #333;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin: 0 2px;
+    cursor: help;
 }
 
 .password-content::after {
-    content: " [*]";
+    content: " 🔒";
     font-size: 0.8em;
     color: #888;
+    position: absolute;
+    right: 2px;
 }
 
 .password-content:hover {
-    color: black;
+    color: var(--text-color);
+    background-color: #f0f0f0;
 }
 
 .password-content:hover::after {
     content: "";
 }
 
+/* Dark mode password content */
+body.dark-mode .password-content:hover {
+    color: var(--dark-text);
+    background-color: #2a2a2a;
+}
+
+/* Spoiler styling - improved */
 .spoiler {
     display: inline-block;
     color: transparent;
-    background-color: #000;
-    border-radius: 3px;
+    background-color: #333;
+    border-radius: 4px;
     cursor: pointer;
+    padding: 3px 8px;
+    margin: 0 2px;
+    transition: all 0.3s ease;
+    user-select: none;
+    position: relative;
+    font-family: inherit;
+    border: 1px solid #555;
+    min-width: 60px; /* Ensure minimum width */
+    text-align: center;
+}
+
+.spoiler:hover {
+    background-color: #444;
+    border-color: #666;
+    transform: scale(1.05);
 }
 
 .spoiler.revealed {
-    color: black;
-    background-color: transparent;
+    color: var(--text-color);
+    background-color: #f0f0f0;
+    border: 1px solid var(--border-color);
+    min-width: auto; /* Remove min width when revealed */
+}
+
+.spoiler:not(.revealed)::before {
+    content: "👁️ SPOILER";
+    color: #999;
+    font-size: 0.8em;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    pointer-events: none; /* Prevent interference with clicks */
+}
+
+.spoiler.revealed::before {
+    content: "";
+    display: none;
+}
+
+/* Dark mode spoiler styling */
+body.dark-mode .spoiler {
+    background-color: #444;
+    border-color: #666;
+}
+
+body.dark-mode .spoiler:hover {
+    background-color: #555;
+    border-color: #777;
+}
+
+body.dark-mode .spoiler.revealed {
+    color: var(--dark-text);
+    background-color: #2a2a2a;
+    border-color: var(--dark-border-color);
+}
+
+body.dark-mode .spoiler:not(.revealed)::before {
+    color: #bbb;
+}
+
+/* Blockquote styling - improved */
+.markdown-preview blockquote {
+    border-left: 4px solid var(--button-background);
+    margin: 1em 0;
+    padding: 0.8em 15px;
+    color: #666;
+    font-style: italic;
+    background-color: #f9f9f9;
+    border-radius: 0 4px 4px 0;
+    position: relative;
+}
+
+.markdown-preview blockquote::before {
+    content: '"';
+    font-size: 2em;
+    color: var(--button-background);
+    position: absolute;
+    left: 8px;
+    top: 0.2em;
+    opacity: 0.3;
+}
+
+.markdown-preview blockquote p {
+    margin: 0.5em 0;
+    padding-left: 1em;
+}
+
+.markdown-preview blockquote p:first-child {
+    margin-top: 0;
+}
+
+.markdown-preview blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+/* Dark mode blockquote */
+body.dark-mode .markdown-preview blockquote {
+    color: #ccc;
+    background-color: #2a2a2a;
+    border-left-color: var(--dark-button-background);
+}
+
+body.dark-mode .markdown-preview blockquote::before {
+    color: var(--dark-button-background);
 }
 
 /* Text Formatting */
@@ -327,4 +468,192 @@ textarea {
 
 #renderedNote p {
     margin-bottom: 1rem;
+}
+
+/* Markdown Editor Styles */
+.markdown-editor-container {
+    width: 100%;
+    min-height: 400px; /* Taller editor */
+    border: 2px solid var(--border-color); /* Consistent with title */
+    border-radius: 8px;
+    background-color: var(--card-background);
+    margin-bottom: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* More prominent shadow */
+    transition: all 0.3s ease;
+}
+
+.markdown-editor-container:focus-within {
+    border-color: var(--button-background);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1), 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+/* CodeMirror editor fixes */
+.cm-editor {
+    height: 400px; /* Match container height */
+    font-size: 16px;
+    border-radius: 6px; /* Slightly smaller radius inside container */
+    font-family: 'Roboto', sans-serif;
+}
+
+.cm-editor.cm-focused {
+    outline: none;
+}
+
+.cm-content {
+    padding: 20px; /* More generous padding */
+    min-height: 360px; /* Account for padding */
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.6; /* Better line spacing */
+    font-size: 16px;
+}
+
+.cm-editor .cm-scroller {
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Preview window fixes */
+.markdown-preview {
+    width: 100%;
+    min-height: 400px; /* Match editor height */
+    padding: 20px; /* Match editor padding */
+    border: 2px solid var(--border-color); /* Consistent border */
+    border-radius: 8px;
+    background-color: var(--card-background);
+    color: var(--text-color);
+    overflow-y: auto;
+    word-wrap: break-word;
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.4; /* Reduced from 1.6 */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    /* Remove white-space: pre-wrap to fix excessive spacing */
+}
+
+/* Markdown preview content styling */
+.markdown-preview p {
+    margin: 0.5em 0; /* Reduced margin */
+    line-height: 1.5;
+}
+
+.markdown-preview h1 {
+    font-size: 1.8em;
+    margin: 1em 0 0.5em 0;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.3em;
+}
+
+.markdown-preview h2 {
+    font-size: 1.5em;
+    margin: 0.8em 0 0.4em 0;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.2em;
+}
+
+.markdown-preview h3 {
+    font-size: 1.3em;
+    margin: 0.7em 0 0.3em 0;
+    font-weight: 600;
+}
+
+.markdown-preview h4 {
+    font-size: 1.1em;
+    margin: 0.6em 0 0.3em 0;
+    font-weight: 600;
+}
+
+.markdown-preview h5 {
+    font-size: 1em;
+    margin: 0.5em 0 0.3em 0;
+    font-weight: 600;
+}
+
+.markdown-preview h6 {
+    font-size: 0.9em;
+    margin: 0.5em 0 0.3em 0;
+    font-weight: 600;
+}
+
+.markdown-preview strong {
+    font-weight: 600;
+}
+
+.markdown-preview em {
+    font-style: italic;
+}
+
+.markdown-preview del {
+    text-decoration: line-through;
+}
+
+.markdown-preview code {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    background-color: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.markdown-preview pre {
+    background-color: #f8f8f8;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    border-left: 4px solid var(--button-background);
+    margin: 1.2em 0;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.45; /* Tighter line height for code */
+}
+
+.markdown-preview pre code {
+    background: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    font-size: inherit; /* Inherit from pre */
+    color: inherit;
+    font-family: inherit; /* Inherit from pre */
+    line-height: inherit; /* Inherit from pre */
+    display: block;
+    white-space: pre;
+    word-wrap: normal;
+    box-shadow: none !important;
+}
+
+/* Ensure inline code is distinctly different */
+.markdown-preview code:not(pre code) {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace;
+    background-color: #f5f5f5 !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+    font-size: 0.9em !important;
+    border: 1px solid #e0e0e0 !important;
+    line-height: 1.2 !important;
+    display: inline !important;
+    white-space: nowrap !important;
+}
+
+/* Dark mode code styling */
+body.dark-mode .markdown-preview pre {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    border-left-color: var(--dark-button-background);
+}
+
+body.dark-mode .markdown-preview pre code {
+    color: #e0e0e0 !important;
+    background: none !important;
+}
+
+body.dark-mode .markdown-preview code:not(pre code) {
+    background-color: #333 !important;
+    color: #e0e0e0 !important;
+    border-color: #555 !important;
 }
