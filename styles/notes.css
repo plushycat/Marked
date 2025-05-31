@@ -59,7 +59,7 @@ header.app-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
+    padding: 20px 40px; /* Change from 20px to 20px 40px to match body */
     background-color: var(--card-background);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
@@ -95,7 +95,7 @@ header p {
 .app-container {
     display: flex;
     gap: 40px;
-    padding: 20px;
+    padding: 0; /* Remove padding since body already has 40px horizontal padding */
     max-width: 100%;
     width: 100%;
     justify-content: space-between;
