@@ -1,0 +1,1447 @@
+/*
+ * This file is the master stylesheet for Marked. 
+ * All layout, structure, and visual rules remain here to preserve the original design.
+ * Modular CSS files (base.css, header.css, etc.) are for overrides or new features only.
+ */
+
+/* Global Styles */
+:root {
+    --background-color: #c5f3e3;
+    --text-color: #333;
+    --card-background: #fff;
+    --button-background: #4caf50;
+    --button-hover: #45a049;
+    --border-color: #e0e0e0;
+
+    /* Dark Mode */
+    --dark-background: #121212;
+    --dark-text: #e0e0e0;
+    --dark-card-background: #1e1e1e;
+    --dark-border-color: #333;
+    --dark-button-background: #3d5afe;
+    --dark-button-hover: #536dfe;
+}
+
+/* Body and Main Container */
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 0 40px;
+    padding-top: 80px;
+    box-sizing: border-box;
+}
+
+/* Dark mode variables */
+body.dark-mode {
+    --background-color: var(--dark-background);
+    --text-color: var(--dark-text);
+    --card-background: var(--dark-card-background);
+    --button-background: var(--dark-button-background);
+    --button-hover: var(--dark-button-hover);
+    --border-color: var(--dark-border-color);
+}
+
+body.dark-mode .note-item:hover {
+    background-color: #d3d3d3;
+    color: black;
+}
+
+body.dark-mode #searchInput {
+    background-color: var(--dark-card-background);
+    border-color: var(--dark-border-color);
+    color: var(--dark-text);
+}
+
+/* Header Styling */
+header.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 40px;
+    background-color: var(--card-background);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-bottom: 30px;
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-sizing: border-box;
+    gap: 20px;
+}
+
+header .header-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-shrink: 0;
+    min-width: 200px; /* Ensure minimum width */
+}
+
+header .header-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 2; /* Give toolbar more space */
+    max-width: 500px; /* Set a reasonable max width */
+    padding-left: 130px;
+}
+
+header .header-right {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    min-width: 80px; /* Ensure minimum width */
+    margin-left: auto; /* Pushes the dark mode button as far right as possible */
+    justify-content: flex-end; /* Align content to the right */
+    position: relative;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 500;
+    color: var(--text-color);
+    font-family: 'Roboto', sans-serif;
+}
+
+header p {
+    margin: 10px 0 0;
+    font-size: 1.2rem;
+    color: var(--text-color);
+}
+
+/* Main Layout */
+.app-container {
+    display: flex;
+    gap: 40px;
+    padding: 0; /* Remove padding since body already has 40px horizontal padding */
+    max-width: 100%;
+    width: 100%;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    margin-top: 30px;
+}
+
+/* Notes Sidebar */
+.notes-sidebar {
+    flex: 0 0 320px; /* Fixed width instead of flex: 1 */
+    width: 320px;
+    background-color: var(--card-background);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    height: calc(100vh - 200px); /* Better height calculation */
+    position: sticky;
+    top: 20px;
+    box-sizing: border-box;
+}
+
+.notes-sidebar button {
+    width: 100%;
+    padding: 12px 16px; /* More consistent padding */
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--button-background);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 15px;
+    font-weight: 500;
+    min-height: 44px; /* Consistent button height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notes-sidebar button:hover {
+    background-color: var(--button-hover);
+    transform: translateY(-1px);
+}
+
+/* Note Item Styling */
+.note-item {
+    padding: 14px 16px; /* More consistent padding */
+    margin: 8px 0;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column; /* Stack title and timestamp */
+    gap: 6px;
+    box-sizing: border-box;
+}
+
+.note-item:hover {
+    background-color: #f8d898;
+    color: #333; /* Better contrast */
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.note-timestamp {
+    font-size: 0.75rem;
+    color: #888;
+    align-self: flex-end; /* Align to right */
+    margin: 0;
+    font-style: italic;
+}
+
+/* Note Editor */
+.note-editor {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Prevents overflow */
+    gap: 0; /* Remove gap, handle spacing individually */
+}
+
+/* Button Styling */
+button {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--button-background);
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: var(--button-hover);
+}
+
+/* Button Container */
+.editor-buttons {
+    display: none !important;
+}
+
+/* Horizontal Toolbar Styling */
+.editor-toolbar {
+    display: flex;
+    flex-direction: row;
+    gap: 12px; /* Increase gap for better spacing */
+    padding: 8px 20px; /* Increase horizontal padding */
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
+    backdrop-filter: blur(5px);
+    width: 100%; /* Take full width of container */
+    max-width: 100%; /* Ensure it doesn't exceed container */
+    overflow: visible; /* Remove overflow scrolling */
+    box-sizing: border-box;
+}
+
+.editor-toolbar button {
+    flex-shrink: 0;
+    width: 40px; /* Make buttons slightly larger */
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    background-color: transparent;
+    color: var(--text-color);
+    box-sizing: border-box;
+}
+
+.editor-toolbar button:hover {
+    background-color: var(--border-color);
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.editor-toolbar button:active {
+    transform: scale(0.95);
+}
+
+/* Specific button hover colors for better UX */
+#saveButton:hover {
+    background-color: rgba(76, 175, 80, 0.15);
+    color: #4caf50;
+}
+
+#deleteButton:hover {
+    background-color: rgba(244, 67, 54, 0.15);
+    color: #f44336;
+}
+
+#clearButton:hover {
+    background-color: rgba(255, 152, 0, 0.15);
+    color: #ff9800;
+}
+
+#txtButton:hover, #mdButton:hover {
+    background-color: rgba(33, 150, 243, 0.15);
+    color: #2196f3;
+}
+
+#openFileButton:hover {
+    background-color: rgba(156, 39, 176, 0.15);
+    color: #9c27b0;
+}
+
+/* Tooltip styling for all app-side tooltips (toolbar, mode toggle, dark mode) */
+.editor-toolbar button::after,
+.mode-toggle-button::after,
+.dark-mode-btn::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: -38px; /* Show above the button */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 100;
+}
+
+.editor-toolbar button:hover::after,
+.mode-toggle-button:hover::after,
+.dark-mode-btn:hover::after {
+    opacity: 1;
+}
+
+/* Enhanced Note Title - positioned below toolbar */
+#noteTitle {
+    width: 100%;
+    padding: 16px 20px;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    background-color: var(--card-background);
+    color: var(--text-color);
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    line-height: 1.4;
+}
+
+#noteTitle:focus {
+    outline: none;
+    border-color: var(--button-background);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Title row as a single bar with inline toggle button */
+.title-row {
+    display: flex;
+    align-items: stretch; /* Make children the same height */
+    width: 100%;
+    margin-bottom: 16px;
+    gap: 0; /* Remove gap so input and button are flush */
+    position: relative;
+}
+
+/* Note title input fills available space, no margin, rounded only on left */
+#noteTitle {
+    flex: 1;
+    width: 100%;
+    padding: 16px 20px;
+    font-size: 20px;
+    font-weight: 600;
+    border-radius: 12px 0 0 12px; /* Only left corners rounded */
+    border: 2px solid var(--border-color);
+    background-color: var(--card-background);
+    color: var(--text-color);
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    line-height: 1.4;
+    margin: 0; /* Remove margin */
+    border-right: none; /* Remove right border to merge with button */
+    height: 44px; /* Match button height */
+}
+
+#noteTitle:focus {
+    outline: none;
+    border-color: var(--button-background);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Preview/Edit toggle button flush with input, rounded only on right */
+.mode-toggle-button {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    border: 2px solid var(--border-color);
+    border-left: none; /* Remove left border to merge with input */
+    border-radius: 0 12px 12px 0; /* Only right corners rounded */
+    background-color: var(--button-background);
+    color: white;
+    box-shadow: none;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.mode-toggle-button:hover {
+    background-color: var(--button-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.mode-toggle-button:active {
+    transform: translateY(0);
+}
+
+/* Tooltip for the toggle button - show above the button */
+.mode-toggle-button::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: -38px; /* Place above the button */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 100;
+}
+
+.mode-toggle-button:hover::after {
+    opacity: 1;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+    .title-row {
+        margin-bottom: 12px;
+    }
+    #noteTitle {
+        font-size: 18px;
+        padding: 14px 16px;
+        border-radius: 10px 0 0 10px;
+        height: 40px;
+    }
+    .mode-toggle-button {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+        border-radius: 0 10px 10px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    #noteTitle {
+        font-size: 16px;
+        padding: 12px 14px;
+        border-radius: 8px 0 0 8px;
+        height: 36px;
+    }
+    .mode-toggle-button {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+        border-radius: 0 8px 8px 0;
+    }
+}
+
+/* Dark mode styles for toggle button */
+body.dark-mode .mode-toggle-button {
+    background-color: var(--dark-button-background);
+}
+
+body.dark-mode .mode-toggle-button:hover {
+    background-color: var(--dark-button-hover);
+}
+
+body.dark-mode .mode-toggle-button::after {
+    background-color: #555;
+    color: #e0e0e0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .header-center {
+        flex: 1.5; /* Reduce flex on medium screens */
+        max-width: 400px;
+    }
+    
+    .editor-toolbar {
+        gap: 10px;
+        padding: 6px 15px;
+    }
+    
+    .editor-toolbar button {
+        width: 36px;
+        height: 36px;
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    header.app-header {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 20px;
+        align-items: center;
+    }
+    
+    .header-left {
+        text-align: center;
+        min-width: auto;
+    }
+    
+    .header-center {
+        order: 3;
+        width: 100%;
+        max-width: 100%;
+        justify-content: center;
+        flex: none;
+    }
+    
+    .header-right {
+        order: 2;
+        align-self: flex-end;
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        min-width: auto;
+    }
+    
+    .editor-toolbar {
+        gap: 8px;
+        padding: 6px 12px;
+        width: auto; /* Let it size naturally on mobile */
+        min-width: 300px; /* Ensure minimum usable width */
+    }
+    
+    .editor-toolbar button {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+    
+    .title-row {
+        gap: 8px;
+    }
+    
+    .mode-toggle-button {
+        width: 40px;
+        height: 40px;
+        font-size: 14px;
+    }
+    
+    #noteTitle {
+        font-size: 18px;
+        padding: 14px 16px;
+        border-radius: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .editor-toolbar {
+        gap: 6px;
+        padding: 5px 10px;
+        min-width: 280px; /* Smaller minimum on very small screens */
+    }
+    
+    .editor-toolbar button {
+        width: 30px;
+        height: 30px;
+        font-size: 13px;
+    }
+    
+    .title-row {
+        gap: 6px;
+    }
+    
+    .mode-toggle-button {
+        width: 36px;
+        height: 36px;
+        font-size: 13px;
+    }
+    
+    #noteTitle {
+        font-size: 16px;
+        padding: 12px 14px;
+    }
+}
+
+/* Dark mode password content */
+body.dark-mode .password-content:hover {
+    color: #fff;
+    background: #222;
+    text-shadow: none;
+}
+
+/* Spoiler styling - improved */
+.spoiler {
+    display: inline-block;
+    color: transparent;
+    background-color: #333;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 3px 8px;
+    margin: 0 2px;
+    transition: all 0.3s ease;
+    user-select: none;
+    position: relative;
+    font-family: inherit;
+    border: 1px solid #555;
+    min-width: 60px; /* Ensure minimum width */
+    text-align: center;
+}
+
+.spoiler:hover {
+    background-color: #444;
+    border-color: #666;
+    transform: scale(1.05);
+}
+
+.spoiler.revealed {
+    color: var(--text-color);
+    background-color: #f0f0f0;
+    border: 1px solid var(--border-color);
+    min-width: auto; /* Remove min width when revealed */
+}
+
+.spoiler:not(.revealed)::before {
+    content: "👁️ SPOILER";
+    color: #999;
+    font-size: 0.8em;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    pointer-events: none; /* Prevent interference with clicks */
+}
+
+.spoiler.revealed::before {
+    content: "";
+    display: none;
+}
+
+/* Dark mode spoiler styling */
+body.dark-mode .spoiler {
+    background-color: #444;
+    border-color: #666;
+}
+
+body.dark-mode .spoiler:hover {
+    background-color: #555;
+    border-color: #777;
+}
+
+body.dark-mode .spoiler.revealed {
+    color: var(--dark-text);
+    background-color: #2a2a2a;
+    border-color: var(--dark-border-color);
+}
+
+body.dark-mode .spoiler:not(.revealed)::before {
+    color: #bbb;
+}
+
+/* Blockquote styling - improved */
+.markdown-preview blockquote {
+    border-left: 4px solid var(--button-background);
+    margin: 1em 0;
+    padding: 0.8em 15px;
+    color: #666;
+    font-style: italic;
+    background-color: #f9f9f9;
+    border-radius: 0 4px 4px 0;
+    position: relative;
+}
+
+.markdown-preview blockquote::before {
+    content: '"';
+    font-size: 2em;
+    color: var(--button-background);
+    position: absolute;
+    left: 8px;
+    top: 0.2em;
+    opacity: 0.3;
+}
+
+.markdown-preview blockquote p {
+    margin: 0.5em 0;
+    padding-left: 1em;
+}
+
+.markdown-preview blockquote p:first-child {
+    margin-top: 0;
+}
+
+.markdown-preview blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+/* Dark mode blockquote */
+body.dark-mode .markdown-preview blockquote {
+    color: #ccc;
+    background-color: #2a2a2a;
+    border-left-color: var(--dark-button-background);
+}
+
+body.dark-mode .markdown-preview blockquote::before {
+    color: var(--dark-button-background);
+}
+
+/* Text Formatting */
+#noteInput, #renderedNote {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+#renderedNote p {
+    margin-bottom: 1rem;
+}
+
+/* Markdown Editor Styles - Fixed height with scrolling */
+.markdown-editor-container {
+    width: 100%;
+    height: 400px; /* Fixed height instead of min-height */
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--card-background);
+    margin-bottom: 16px;
+    overflow: hidden; /* Hide overflow to let internal scrolling handle it */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    position: relative; /* For proper positioning */
+}
+
+.markdown-editor-container:focus-within {
+    border-color: var(--button-background);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1), 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+/* CodeMirror editor fixes - constrained height with scrolling */
+.cm-editor {
+    height: 100% !important; /* Take full container height */
+    max-height: 400px !important; /* Ensure it doesn't exceed container */
+    font-size: 16px;
+    border-radius: 6px;
+    font-family: 'Roboto', sans-serif;
+    overflow: auto; /* Enable scrolling */
+}
+
+.cm-editor.cm-focused {
+    outline: none;
+}
+
+.cm-content {
+    padding: 20px;
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.6;
+    font-size: 16px;
+    min-height: calc(400px - 40px); /* Account for padding, allow content to be smaller than container */
+    max-height: none; /* Remove max-height constraint */
+}
+
+.cm-editor .cm-scroller {
+    font-family: 'Roboto', sans-serif;
+    overflow: auto !important; /* Ensure scrolling is enabled */
+    max-height: 400px; /* Constrain the scroller height */
+}
+
+/* Simple editor (textarea) fixes for consistent scrolling */
+#simpleEditor {
+    width: 100% !important;
+    height: 400px !important; /* Fixed height to match container */
+    max-height: 400px !important;
+    font-family: 'Roboto', monospace !important;
+    font-size: 16px !important;
+    border: none !important;
+    outline: none !important;
+    padding: 20px !important;
+    resize: none !important;
+    background-color: var(--card-background) !important;
+    color: var(--text-color) !important;
+    box-sizing: border-box !important;
+    overflow-y: auto !important; /* Enable vertical scrolling */
+    overflow-x: auto !important; /* Enable horizontal scrolling if needed */
+    line-height: 1.6 !important;
+}
+
+/* Preview window fixes - constrained height with scrolling */
+.markdown-preview {
+    width: 100%;
+    height: 400px; /* Fixed height to match editor */
+    max-height: 400px; /* Constrain maximum height */
+    padding: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--card-background);
+    color: var(--text-color);
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: auto; /* Enable horizontal scrolling if needed */
+    word-wrap: break-word;
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.4;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+}
+
+/* Dark mode editor styling */
+body.dark-mode .cm-editor {
+    background-color: var(--dark-card-background);
+    color: var(--dark-text);
+}
+
+body.dark-mode .cm-content {
+    background-color: var(--dark-card-background);
+    color: var(--dark-text);
+}
+
+body.dark-mode .cm-focused {
+    background-color: var(--dark-card-background);
+}
+
+body.dark-mode #simpleEditor {
+    background-color: var(--dark-card-background) !important;
+    color: var(--dark-text) !important;
+}
+
+body.dark-mode .markdown-preview {
+    background-color: var(--dark-card-background);
+    color: var(--dark-text);
+    border-color: var(--dark-border-color);
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .markdown-editor-container {
+        height: 300px; /* Smaller height on mobile */
+    }
+    
+    .cm-editor {
+        max-height: 300px !important;
+    }
+    
+    .cm-scroller {
+        max-height: 300px !important;
+    }
+    
+    #simpleEditor {
+        height: 300px !important;
+        max-height: 300px !important;
+    }
+    
+    .markdown-preview {
+        height: 300px;
+        max-height: 300px;
+    }
+    
+    .cm-content {
+        min-height: calc(300px - 40px);
+    }
+}
+
+@media (max-width: 480px) {
+    .markdown-editor-container {
+        height: 250px; /* Even smaller on very small screens */
+    }
+    
+    .cm-editor {
+        max-height: 250px !important;
+    }
+    
+    .cm-scroller {
+        max-height: 250px !important;
+    }
+    
+    #simpleEditor {
+        height: 250px !important;
+        max-height: 250px !important;
+        font-size: 14px !important;
+    }
+    
+    .markdown-preview {
+        height: 250px;
+        max-height: 250px;
+    }
+    
+    .cm-content {
+        min-height: calc(250px - 40px);
+        font-size: 14px;
+    }
+}
+
+/* Custom scrollbar styling for better appearance */
+.cm-scroller::-webkit-scrollbar,
+#simpleEditor::-webkit-scrollbar,
+.markdown-preview::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.cm-scroller::-webkit-scrollbar-track,
+#simpleEditor::-webkit-scrollbar-track,
+.markdown-preview::-webkit-scrollbar-track {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.cm-scroller::-webkit-scrollbar-thumb,
+#simpleEditor::-webkit-scrollbar-thumb,
+.markdown-preview::-webkit-scrollbar-thumb {
+    background: var(--button-background);
+    border-radius: 4px;
+}
+
+.cm-scroller::-webkit-scrollbar-thumb:hover,
+#simpleEditor::-webkit-scrollbar-thumb:hover,
+.markdown-preview::-webkit-scrollbar-thumb:hover {
+    background: var(--button-hover);
+}
+
+/* Dark mode scrollbar */
+body.dark-mode .cm-scroller::-webkit-scrollbar-track,
+body.dark-mode #simpleEditor::-webkit-scrollbar-track,
+body.dark-mode .markdown-preview::-webkit-scrollbar-track {
+    background: var(--dark-border-color);
+}
+
+body.dark-mode .cm-scroller::-webkit-scrollbar-thumb,
+body.dark-mode #simpleEditor::-webkit-scrollbar-thumb,
+body.dark-mode .markdown-preview::-webkit-scrollbar-thumb {
+    background: var(--dark-button-background);
+}
+
+body.dark-mode .cm-scroller::-webkit-scrollbar-thumb:hover,
+body.dark-mode #simpleEditor::-webkit-scrollbar-thumb:hover,
+body.dark-mode .markdown-preview::-webkit-scrollbar-thumb:hover {
+    background: var(--dark-button-hover);
+}
+
+/* Update the new note button to have a consistent icon */
+#newNoteButton {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--button-background);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 15px;
+    font-weight: 500;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#newNoteButton:hover {
+    background-color: var(--button-hover);
+    transform: translateY(-1px);
+}
+
+/* Also ensure the search input stays clean: */
+#searchInput {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--card-background);
+    color: var(--text-color);
+    margin-bottom: 15px;
+    box-sizing: border-box;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    outline: none;
+}
+
+#searchInput:focus {
+    border-color: var(--button-background);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+/* And keep the dark mode toggle simple: */
+#darkModeToggle {
+    padding: 8px 12px; /* Smaller padding */
+    font-size: 14px; /* Smaller font */
+    border: none;
+    border-radius: 6px; /* Smaller border radius */
+    background-color: var(--button-background);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: auto; /* Don't stretch full width */
+    min-width: auto; /* Remove min-width constraint */
+    height: auto; /* Auto height */
+    display: inline-flex; /* Use inline-flex instead of flex */
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+#darkModeToggle:hover {
+    background-color: var(--button-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow on hover */
+}
+
+#darkModeToggle:active {
+    transform: translateY(0);
+}
+
+/* Dark mode specific styling for the toggle button */
+body.dark-mode #darkModeToggle {
+    background-color: var(--dark-button-background);
+}
+
+body.dark-mode #darkModeToggle:hover {
+    background-color: var(--dark-button-hover);
+}
+
+/* Add these improved styles to your notes.css file: */
+
+/* Markdown preview content styling - FIXED */
+.markdown-preview p {
+    margin: 0.5em 0; /* Reduced margin */
+    line-height: 1.5;
+}
+
+.markdown-preview h1 {
+    font-size: 1.8em;
+    margin: 1em 0 0.5em 0;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.3em;
+}
+
+.markdown-preview h2 {
+    font-size: 1.5em;
+    margin: 0.8em 0 0.4em 0;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.2em;
+}
+
+.markdown-preview h3 {
+    font-size: 1.3em;
+    margin: 0.7em 0 0.3em 0;
+    font-weight: 600;
+}
+
+.markdown-preview h4 {
+    font-size: 1.1em;
+    margin: 0.6em 0 0.3em 0;
+    font-weight: 600;
+}
+
+.markdown-preview h5 {
+    font-size: 1em;
+    margin: 0.5em 0 0.3em 0;
+    font-weight: 600;
+}
+
+.markdown-preview h6 {
+    font-size: 0.9em;
+    margin: 0.5em 0 0.3em 0;
+    font-weight: 600;
+}
+
+.markdown-preview strong {
+    font-weight: 600;
+}
+
+.markdown-preview em {
+    font-style: italic;
+}
+
+.markdown-preview del {
+    text-decoration: line-through;
+}
+
+.markdown-preview code {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    background-color: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+/* FIXED: Multi-line code blocks */
+.markdown-preview pre {
+    background-color: #f8f8f8;
+    padding: 15px;
+    border-radius: 6px;
+    overflow-x: auto;
+    border-left: 4px solid var(--button-background);
+    margin: 1em 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.markdown-preview pre code {
+    background: none;
+    padding: 0;
+    font-size: 0.9em;
+    color: inherit;
+    border-radius: 0;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    display: block;
+    white-space: pre;
+    overflow-x: auto;
+}
+
+/* Links */
+.markdown-preview a {
+    color: var(--button-background);
+    text-decoration: underline;
+}
+
+.markdown-preview a:hover {
+    color: var(--button-hover);
+}
+
+/* Images */
+.markdown-preview img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 0.5em 0;
+}
+
+/* Lists */
+.markdown-preview ul, .markdown-preview ol {
+    margin: 0.8em 0;
+    padding-left: 30px;
+}
+
+.markdown-preview li {
+    margin-bottom: 0.3em; /* Reduced from default */
+    line-height: 1.4;
+}
+
+.markdown-preview li:last-child {
+    margin-bottom: 0;
+}
+
+/* Nested lists */
+.markdown-preview ul ul, .markdown-preview ol ol, 
+.markdown-preview ul ol, .markdown-preview ol ul {
+    margin: 0.2em 0;
+}
+
+/* Tables (if you add table support later) */
+.markdown-preview table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+}
+
+.markdown-preview th, .markdown-preview td {
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.markdown-preview th {
+    background-color: #f5f5f5;
+    font-weight: 600;
+}
+
+/* Dark mode adjustments for preview */
+body.dark-mode .markdown-preview code {
+    background-color: #333;
+    color: #fff;
+}
+
+body.dark-mode .markdown-preview pre {
+    background-color: #2a2a2a;
+    color: #fff;
+    border-left-color: var(--dark-button-background);
+}
+
+body.dark-mode .markdown-preview pre code {
+    background-color: transparent;
+    color: #fff;
+}
+
+body.dark-mode .markdown-preview h1,
+body.dark-mode .markdown-preview h2 {
+    border-color: var(--dark-border-color);
+}
+
+body.dark-mode .markdown-preview th {
+    background-color: #333;
+}
+
+body.dark-mode .markdown-preview th, 
+body.dark-mode .markdown-preview td {
+    border-color: var(--dark-border-color);
+}
+
+/* Modal styles */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0; top: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+}
+.modal-window {
+    display: none;
+    position: fixed;
+    z-index: 1002;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(34,34,34,0.65); /* 65% opacity for glassy look */
+    color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    min-width: 340px;
+    max-width: 95vw;
+    padding: 32px 28px 24px 28px;
+    text-align: center;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    animation: modalFadeIn 0.2s;
+    backdrop-filter: blur(8px);
+}
+body:not(.dark-mode) .modal-window {
+    background: rgba(255,255,255,0.65);
+    color: #222;
+}
+.modal-btn {
+    min-width: 90px;
+    padding: 10px 0;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s, opacity 0.18s;
+    opacity: 0.65;
+    background: #333;
+    color: #fff;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    outline: none;
+}
+body:not(.dark-mode) .modal-btn {
+    background: #eee;
+    color: #222;
+}
+.modal-cancel {
+    background: #cbbb96;           /* Amber for high visibility */
+    color: #222;
+    font-weight: 700;
+    font-size: 1.08rem;
+    border: 2px solid #94928e;
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.18);
+    opacity: 1;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s, border 0.18s;
+}
+body:not(.dark-mode) .modal-cancel {
+    background: var(--button-background);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.08rem;
+    border: 2px solid var(--button-hover);
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.18);
+    opacity: 1;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s, border 0.18s;
+}
+body:not(.dark-mode) .modal-cancel:hover,
+body:not(.dark-mode) .modal-cancel:focus {
+    background: var(--button-hover) !important;
+    color: #fff !important;
+    border: 2px solid var(--button-hover) !important;
+    box-shadow: 0 4px 16px rgba(76, 175, 80, 0.28) !important;
+}
+.modal-confirm {
+    background: #f44336;
+    color: #fff;
+}
+body:not(.dark-mode) .modal-confirm {
+    background: #e53935;
+    color: #fff;
+}
+.modal-btn:hover, .modal-btn:focus {
+    opacity: 1;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+.modal-cancel:hover, .modal-cancel:focus {
+    background: #666;
+}
+body:not(.dark-mode) .modal-cancel:hover, body:not(.dark-mode) .modal-cancel:focus {
+    background: #bbb;
+}
+.modal-confirm:hover, .modal-confirm:focus {
+    background: #d32f2f;
+}
+body:not(.dark-mode) .modal-confirm:hover, body:not(.dark-mode) .modal-confirm:focus {
+    background: #b71c1c;
+}
+#confirmModalCheckbox:checked ~ .confirm-modal-overlay,
+#confirmModalCheckbox:checked ~ #confirmModal {
+    display: block;
+}
+
+#saveOptionsModalCheckbox:checked ~ .save-modal-overlay,
+#saveOptionsModalCheckbox:checked ~ #saveOptionsModal {
+    display: block;
+}
+
+/* Modal actions: buttons side by side */
+.modal-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+/* Dark mode: make cancel button use blue accent */
+body.dark-mode .modal-cancel {
+    background: var(--dark-button-background);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.08rem;
+    border: 2px solid var(--dark-button-hover);
+    box-shadow: 0 2px 8px rgba(61, 90, 254, 0.18);
+    opacity: 1;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s, border 0.18s;
+}
+body.dark-mode .modal-cancel:hover,
+body.dark-mode .modal-cancel:focus {
+    background: var(--dark-button-hover);
+    color: #fff;
+    border: 2px solid var(--dark-button-hover);
+    box-shadow: 0 4px 16px rgba(61, 90, 254, 0.278);
+}
+
+.help-btn {
+    margin-right: 18px;
+    font-size: 1.2rem;
+    background: transparent;
+    color: inherit;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.help-btn:hover,
+.help-btn:focus {
+    background: rgba(0,0,0,0.06);
+}
+
+.help-icon-dark { display: none; }
+body.dark-mode .help-icon-light { display: none; }
+body.dark-mode .help-icon-dark { display: inline; }
+
+.help-icon-light,
+.help-icon-dark {
+    width: 48px !important;
+    height: 48px !important;
+    vertical-align: middle;
+}
+
+/* New styles for markdown help examples */
+.markdown-help-examples {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    align-items: flex-start;
+    margin: 24px 0;
+}
+.markdown-help-examples > div {
+    flex: 1;
+    min-width: 180px;
+    max-width: 320px;
+}
+.markdown-help-examples pre {
+    background: #f5f5f5;
+    color: #222;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 0.98em;
+    overflow-x: auto;
+    margin: 0;
+}
+body.dark-mode .markdown-help-examples pre {
+    background: #222;
+    color: #eee;
+}
+@media (max-width: 700px) {
+    .markdown-help-examples {
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+#helpModalCheckbox:checked ~ .help-modal-overlay,
+#helpModalCheckbox:checked ~ #helpModal {
+    display: block;
+}
+
+.password-content {
+    background: #222;
+    color: transparent;
+    border-radius: 4px;
+    padding: 3px 8px;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid #888;
+    transition: color 0.2s, background 0.2s;
+    text-shadow: 0 0 8px #222;
+    position: relative;
+}
+.password-content:hover {
+    color: #222;
+    background: #f5f5f5;
+    text-shadow: none;
+}
+body.dark-mode .password-content {
+    background: #444;
+    color: transparent;
+    border: 1px solid #888;
+    text-shadow: 0 0 8px #444;
+}
+body.dark-mode .password-content:hover {
+    color: #fff;
+    background: #222;
+    text-shadow: none;
+}

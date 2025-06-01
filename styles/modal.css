@@ -1,0 +1,212 @@
+/* Modal CSS - Modal dialogs, buttons, and help content styling */
+
+/* Modal styles */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0; top: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+}
+
+.modal-window {
+    display: none;
+    position: fixed;
+    z-index: 1002;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(34,34,34,0.65); /* 65% opacity for glassy look */
+    color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    min-width: 340px;
+    max-width: 95vw;
+    padding: 32px 28px 24px 28px;
+    text-align: center;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    animation: modalFadeIn 0.2s;
+    backdrop-filter: blur(8px);
+}
+
+body:not(.dark-mode) .modal-window {
+    background: rgba(255,255,255,0.65);
+    color: #222;
+}
+
+/* Modal buttons */
+.modal-btn {
+    min-width: 90px;
+    padding: 10px 0;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s, opacity 0.18s;
+    opacity: 0.65;
+    background: #333;
+    color: #fff;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    outline: none;
+}
+
+body:not(.dark-mode) .modal-btn {
+    background: #eee;
+    color: #222;
+}
+
+.modal-cancel {
+    background: #cbbb96;           /* Amber for high visibility */
+    color: #222;
+    font-weight: 700;
+    font-size: 1.08rem;
+    border: 2px solid #94928e;
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.18);
+    opacity: 1;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s, border 0.18s;
+}
+
+body:not(.dark-mode) .modal-cancel {
+    background: var(--button-background);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.08rem;
+    border: 2px solid var(--button-hover);
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.18);
+    opacity: 1;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s, border 0.18s;
+}
+
+body:not(.dark-mode) .modal-cancel:hover,
+body:not(.dark-mode) .modal-cancel:focus {
+    background: var(--button-hover) !important;
+    color: #fff !important;
+    border: 2px solid var(--button-hover) !important;
+    box-shadow: 0 4px 16px rgba(76, 175, 80, 0.28) !important;
+}
+
+.modal-confirm {
+    background: #f44336;
+    color: #fff;
+}
+
+body:not(.dark-mode) .modal-confirm {
+    background: #e53935;
+    color: #fff;
+}
+
+.modal-btn:hover, .modal-btn:focus {
+    opacity: 1;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.modal-cancel:hover, .modal-cancel:focus {
+    background: #666;
+}
+
+body:not(.dark-mode) .modal-cancel:hover, body:not(.dark-mode) .modal-cancel:focus {
+    background: #bbb;
+}
+
+.modal-confirm:hover, .modal-confirm:focus {
+    background: #d32f2f;
+}
+
+body:not(.dark-mode) .modal-confirm:hover, body:not(.dark-mode) .modal-confirm:focus {
+    background: #b71c1c;
+}
+
+/* Modal checkbox triggers */
+#confirmModalCheckbox:checked ~ .confirm-modal-overlay,
+#confirmModalCheckbox:checked ~ #confirmModal {
+    display: block;
+}
+
+#saveOptionsModalCheckbox:checked ~ .save-modal-overlay,
+#saveOptionsModalCheckbox:checked ~ #saveOptionsModal {
+    display: block;
+}
+
+#helpModalCheckbox:checked ~ .help-modal-overlay,
+#helpModalCheckbox:checked ~ #helpModal {
+    display: block;
+}
+
+/* Modal actions: buttons side by side */
+.modal-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+/* Dark mode: make cancel button use blue accent */
+body.dark-mode .modal-cancel {
+    background: var(--dark-button-background);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.08rem;
+    border: 2px solid var(--dark-button-hover);
+    box-shadow: 0 2px 8px rgba(61, 90, 254, 0.18);
+    opacity: 1;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s, border 0.18s;
+}
+
+body.dark-mode .modal-cancel:hover,
+body.dark-mode .modal-cancel:focus {
+    background: var(--dark-button-hover);
+    color: #fff;
+    border: 2px solid var(--dark-button-hover);
+    box-shadow: 0 4px 16px rgba(61, 90, 254, 0.278);
+}
+
+/* Markdown help examples */
+.markdown-help-examples {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    align-items: flex-start;
+    margin: 24px 0;
+}
+
+.markdown-help-examples > div {
+    flex: 1;
+    min-width: 180px;
+    max-width: 320px;
+}
+
+.markdown-help-examples pre {
+    background: #f5f5f5;
+    color: #222;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 0.98em;
+    overflow-x: auto;
+    margin: 0;
+}
+
+body.dark-mode .markdown-help-examples pre {
+    background: #222;
+    color: #eee;
+}
+
+@media (max-width: 700px) {
+    .markdown-help-examples {
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+
+/* Modal animation */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}

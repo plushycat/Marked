@@ -5,7 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marked</title>
-    <link rel="stylesheet" href="styles/notes.css">
+    <!-- Modular CSS imports -->
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/darkmode.css">
+    <link rel="stylesheet" href="styles/header.css">
+    <link rel="stylesheet" href="styles/sidebar.css">
+    <link rel="stylesheet" href="styles/editor.css">
+    <link rel="stylesheet" href="styles/markdown.css">
+    <link rel="stylesheet" href="styles/modal.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@codemirror/view@6/dist/index.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@codemirror/theme-one-dark@6/dist/theme.css">
     <link rel="icon" type="image/x-icon" href="assets/icon.ico">
@@ -167,14 +174,21 @@ multiline code
         </div>
     </div>
 
-    <!-- CodeMirror JavaScript -->
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/state@6/dist/index.js"></script>
+    <!-- CodeMirror JavaScript -->    <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/state@6/dist/index.js"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/view@6/dist/index.js"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/basic-setup@0.20.0/dist/index.js"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/lang-markdown@6/dist/index.js"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/theme-one-dark@6/dist/theme.js"></script>
 
-    <script src="scripts/notes.js"></script>
+    <!-- Load modular scripts in dependency order -->
+    <script src="scripts/storage.js"></script>
+    <script src="scripts/markdown.js"></script>
+    <script src="scripts/modals.js"></script>
+    <script src="scripts/notesList.js"></script>
+    <script src="scripts/editor.js"></script>
+    <script src="scripts/darkmode.js"></script>
+    <script src="scripts/events.js"></script>
+    <script src="scripts/main.js"></script>
 </body>
 
 </html>
