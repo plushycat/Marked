@@ -434,10 +434,17 @@ function clearNote() {
     if (markdownEditor) {
         clearUndoRedoStacks();
         markdownEditor.setContent('');
+        
+        // Update preview if in preview mode
+        if (globalIsPreviewMode) {
+            const previewContainer = document.querySelector('.markdown-preview');
+            if (previewContainer) {
+                previewContainer.innerHTML = ''; // Clear preview content
+            }
+        }
     }
     document.getElementById('noteTitle').value = '';
     document.getElementById('noteTimestamp').textContent = '';
-    currentNoteId = null;
 }
 
 // Create a new note
@@ -446,6 +453,14 @@ function createNewNote() {
     if (markdownEditor) {
         clearUndoRedoStacks(); // Clear when creating a new note
         markdownEditor.setContent('');
+        
+        // Update preview if in preview mode
+        if (globalIsPreviewMode) {
+            const previewContainer = document.querySelector('.markdown-preview');
+            if (previewContainer) {
+                previewContainer.innerHTML = ''; // Clear preview content
+            }
+        }
     }
     document.getElementById('noteTitle').value = '';
     document.getElementById('noteTimestamp').textContent = '';

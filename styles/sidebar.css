@@ -10,8 +10,8 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     overflow-y: auto; /* Enable vertical scrolling */
     overflow-x: hidden; /* Hide horizontal scrollbar */
-    height: calc(480px + 60px + 22px); /* Editor height + title bar height + precise gap */
-    max-height: calc(480px + 60px + 22px); /* Ensure it doesn't exceed combined height */
+    height: calc(480px + 60px + 12px); /* Editor height + title bar height + precise gap */
+    max-height: calc(480px + 60px + 12px); /* Ensure it doesn't exceed combined height */
     position: sticky;
     top: 20px;
     box-sizing: border-box;

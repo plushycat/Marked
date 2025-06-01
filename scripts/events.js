@@ -10,7 +10,12 @@ function setupEventListeners() {
     
     // Button event listeners
     document.getElementById('deleteButton').addEventListener('click', window.editor.deleteNote);
-    document.getElementById('clearButton').addEventListener('click', window.editor.clearNote);
+    document.getElementById('clearButton').addEventListener('click', function() {
+        // Show confirmation modal for clearing note
+        window.modals.showConfirmModal("Are you sure you want to clear this note? Any unsaved changes will be lost.", () => {
+            window.editor.clearNote();
+        });
+    });
     document.getElementById('txtButton').addEventListener('click', window.editor.exportNoteTxt);
     document.getElementById('mdButton').addEventListener('click', window.editor.exportNoteMd);
     document.getElementById('newNoteButton').addEventListener('click', window.editor.createNewNote);
