@@ -72,8 +72,11 @@
         </aside>
 
         <section class="note-editor">
-            <!-- Note Title Input Field -->
-            <input type="text" id="noteTitle" placeholder="📄 Enter note title (optional)" />
+            <!-- Title row with inline toggle button -->
+            <div class="title-row">
+                <input type="text" id="noteTitle" placeholder="📄 Enter note title (optional)" />
+                <button id="modeToggleButton" class="mode-toggle-button" title="Toggle Preview Mode">👁️</button>
+            </div>
 
             <div id="markdownEditor" class="markdown-editor-container"></div>
 

@@ -343,18 +343,103 @@ button:hover {
     transform: translateY(-1px);
 }
 
-/* Dark mode styles */
-body.dark-mode .editor-toolbar {
-    background-color: var(--dark-card-background);
-    border-color: var(--dark-border-color);
+/* Add these styles for the title row with inline toggle button */
+
+.title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 16px;
 }
 
-body.dark-mode .editor-toolbar button {
-    color: var(--dark-text);
+#noteTitle {
+    flex: 1; /* Take up available space */
+    padding: 16px 20px;
+    font-size: 20px;
+    font-weight: 600;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    background-color: var(--card-background);
+    color: var(--text-color);
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    line-height: 1.4;
+    margin: 0; /* Remove margin since it's in flex container */
 }
 
-body.dark-mode .editor-toolbar button:hover {
-    background-color: var(--dark-border-color);
+#noteTitle:focus {
+    outline: none;
+    border-color: var(--button-background);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Compact toggle button styling */
+.mode-toggle-button {
+    flex-shrink: 0; /* Don't shrink */
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: var(--button-background);
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.mode-toggle-button:hover {
+    background-color: var(--button-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.mode-toggle-button:active {
+    transform: translateY(0);
+}
+
+/* Tooltip for the toggle button */
+.mode-toggle-button::after {
+    content: attr(title);
+    position: absolute;
+    bottom: -32px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 100;
+}
+
+.mode-toggle-button:hover::after {
+    opacity: 1;
+}
+
+/* Dark mode styles for toggle button */
+body.dark-mode .mode-toggle-button {
+    background-color: var(--dark-button-background);
+}
+
+body.dark-mode .mode-toggle-button:hover {
+    background-color: var(--dark-button-hover);
+}
+
+body.dark-mode .mode-toggle-button::after {
+    background-color: #555;
+    color: #e0e0e0;
 }
 
 /* Responsive adjustments */
@@ -418,6 +503,22 @@ body.dark-mode .editor-toolbar button:hover {
         height: 32px;
         font-size: 14px;
     }
+    
+    .title-row {
+        gap: 8px;
+    }
+    
+    .mode-toggle-button {
+        width: 40px;
+        height: 40px;
+        font-size: 14px;
+    }
+    
+    #noteTitle {
+        font-size: 18px;
+        padding: 14px 16px;
+        border-radius: 10px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -431,6 +532,21 @@ body.dark-mode .editor-toolbar button:hover {
         width: 30px;
         height: 30px;
         font-size: 13px;
+    }
+    
+    .title-row {
+        gap: 6px;
+    }
+    
+    .mode-toggle-button {
+        width: 36px;
+        height: 36px;
+        font-size: 13px;
+    }
+    
+    #noteTitle {
+        font-size: 16px;
+        padding: 12px 14px;
     }
 }
 
@@ -628,17 +744,18 @@ body.dark-mode .markdown-preview blockquote::before {
     margin-bottom: 1rem;
 }
 
-/* Markdown Editor Styles */
+/* Markdown Editor Styles - Fixed height with scrolling */
 .markdown-editor-container {
     width: 100%;
-    min-height: 400px; /* Taller editor */
-    border: 2px solid var(--border-color); /* Consistent with title */
+    height: 400px; /* Fixed height instead of min-height */
+    border: 2px solid var(--border-color);
     border-radius: 8px;
     background-color: var(--card-background);
     margin-bottom: 16px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* More prominent shadow */
+    overflow: hidden; /* Hide overflow to let internal scrolling handle it */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    position: relative; /* For proper positioning */
 }
 
 .markdown-editor-container:focus-within {
@@ -647,12 +764,14 @@ body.dark-mode .markdown-preview blockquote::before {
     transform: translateY(-1px);
 }
 
-/* CodeMirror editor fixes */
+/* CodeMirror editor fixes - constrained height with scrolling */
 .cm-editor {
-    height: 400px; /* Match container height */
+    height: 100% !important; /* Take full container height */
+    max-height: 400px !important; /* Ensure it doesn't exceed container */
     font-size: 16px;
-    border-radius: 6px; /* Slightly smaller radius inside container */
+    border-radius: 6px;
     font-family: 'Roboto', sans-serif;
+    overflow: auto; /* Enable scrolling */
 }
 
 .cm-editor.cm-focused {
@@ -660,160 +779,188 @@ body.dark-mode .markdown-preview blockquote::before {
 }
 
 .cm-content {
-    padding: 20px; /* More generous padding */
-    min-height: 360px; /* Account for padding */
+    padding: 20px;
     font-family: 'Roboto', sans-serif;
-    line-height: 1.6; /* Better line spacing */
+    line-height: 1.6;
     font-size: 16px;
+    min-height: calc(400px - 40px); /* Account for padding, allow content to be smaller than container */
+    max-height: none; /* Remove max-height constraint */
 }
 
 .cm-editor .cm-scroller {
     font-family: 'Roboto', sans-serif;
+    overflow: auto !important; /* Ensure scrolling is enabled */
+    max-height: 400px; /* Constrain the scroller height */
 }
 
-/* Preview window fixes */
+/* Simple editor (textarea) fixes for consistent scrolling */
+#simpleEditor {
+    width: 100% !important;
+    height: 400px !important; /* Fixed height to match container */
+    max-height: 400px !important;
+    font-family: 'Roboto', monospace !important;
+    font-size: 16px !important;
+    border: none !important;
+    outline: none !important;
+    padding: 20px !important;
+    resize: none !important;
+    background-color: var(--card-background) !important;
+    color: var(--text-color) !important;
+    box-sizing: border-box !important;
+    overflow-y: auto !important; /* Enable vertical scrolling */
+    overflow-x: auto !important; /* Enable horizontal scrolling if needed */
+    line-height: 1.6 !important;
+}
+
+/* Preview window fixes - constrained height with scrolling */
 .markdown-preview {
     width: 100%;
-    min-height: 400px; /* Match editor height */
-    padding: 20px; /* Match editor padding */
-    border: 2px solid var(--border-color); /* Consistent border */
+    height: 400px; /* Fixed height to match editor */
+    max-height: 400px; /* Constrain maximum height */
+    padding: 20px;
+    border: 2px solid var(--border-color);
     border-radius: 8px;
     background-color: var(--card-background);
     color: var(--text-color);
-    overflow-y: auto;
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: auto; /* Enable horizontal scrolling if needed */
     word-wrap: break-word;
     font-family: 'Roboto', sans-serif;
-    line-height: 1.4; /* Reduced from 1.6 */
+    line-height: 1.4;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
-    /* Remove white-space: pre-wrap to fix excessive spacing */
 }
 
-/* Markdown preview content styling */
-.markdown-preview p {
-    margin: 0.5em 0; /* Reduced margin */
-    line-height: 1.5;
+/* Dark mode editor styling */
+body.dark-mode .cm-editor {
+    background-color: var(--dark-card-background);
+    color: var(--dark-text);
 }
 
-.markdown-preview h1 {
-    font-size: 1.8em;
-    margin: 1em 0 0.5em 0;
-    font-weight: 600;
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 0.3em;
+body.dark-mode .cm-content {
+    background-color: var(--dark-card-background);
+    color: var(--dark-text);
 }
 
-.markdown-preview h2 {
-    font-size: 1.5em;
-    margin: 0.8em 0 0.4em 0;
-    font-weight: 600;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 0.2em;
+body.dark-mode .cm-focused {
+    background-color: var(--dark-card-background);
 }
 
-.markdown-preview h3 {
-    font-size: 1.3em;
-    margin: 0.7em 0 0.3em 0;
-    font-weight: 600;
+body.dark-mode #simpleEditor {
+    background-color: var(--dark-card-background) !important;
+    color: var(--dark-text) !important;
 }
 
-.markdown-preview h4 {
-    font-size: 1.1em;
-    margin: 0.6em 0 0.3em 0;
-    font-weight: 600;
+body.dark-mode .markdown-preview {
+    background-color: var(--dark-card-background);
+    color: var(--dark-text);
+    border-color: var(--dark-border-color);
 }
 
-.markdown-preview h5 {
-    font-size: 1em;
-    margin: 0.5em 0 0.3em 0;
-    font-weight: 600;
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .markdown-editor-container {
+        height: 300px; /* Smaller height on mobile */
+    }
+    
+    .cm-editor {
+        max-height: 300px !important;
+    }
+    
+    .cm-scroller {
+        max-height: 300px !important;
+    }
+    
+    #simpleEditor {
+        height: 300px !important;
+        max-height: 300px !important;
+    }
+    
+    .markdown-preview {
+        height: 300px;
+        max-height: 300px;
+    }
+    
+    .cm-content {
+        min-height: calc(300px - 40px);
+    }
 }
 
-.markdown-preview h6 {
-    font-size: 0.9em;
-    margin: 0.5em 0 0.3em 0;
-    font-weight: 600;
+@media (max-width: 480px) {
+    .markdown-editor-container {
+        height: 250px; /* Even smaller on very small screens */
+    }
+    
+    .cm-editor {
+        max-height: 250px !important;
+    }
+    
+    .cm-scroller {
+        max-height: 250px !important;
+    }
+    
+    #simpleEditor {
+        height: 250px !important;
+        max-height: 250px !important;
+        font-size: 14px !important;
+    }
+    
+    .markdown-preview {
+        height: 250px;
+        max-height: 250px;
+    }
+    
+    .cm-content {
+        min-height: calc(250px - 40px);
+        font-size: 14px;
+    }
 }
 
-.markdown-preview strong {
-    font-weight: 600;
+/* Custom scrollbar styling for better appearance */
+.cm-scroller::-webkit-scrollbar,
+#simpleEditor::-webkit-scrollbar,
+.markdown-preview::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
 }
 
-.markdown-preview em {
-    font-style: italic;
-}
-
-.markdown-preview del {
-    text-decoration: line-through;
-}
-
-.markdown-preview code {
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    background-color: #f5f5f5;
-    padding: 2px 6px;
+.cm-scroller::-webkit-scrollbar-track,
+#simpleEditor::-webkit-scrollbar-track,
+.markdown-preview::-webkit-scrollbar-track {
+    background: var(--border-color);
     border-radius: 4px;
-    font-size: 0.9em;
 }
 
-.markdown-preview pre {
-    background-color: #f8f8f8;
-    padding: 15px;
-    border-radius: 8px;
-    overflow-x: auto;
-    border-left: 4px solid var(--button-background);
-    margin: 1.2em 0;
-    position: relative;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace;
-    font-size: 13px;
-    line-height: 1.45; /* Tighter line height for code */
+.cm-scroller::-webkit-scrollbar-thumb,
+#simpleEditor::-webkit-scrollbar-thumb,
+.markdown-preview::-webkit-scrollbar-thumb {
+    background: var(--button-background);
+    border-radius: 4px;
 }
 
-.markdown-preview pre code {
-    background: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
-    border-radius: 0 !important;
-    font-size: inherit; /* Inherit from pre */
-    color: inherit;
-    font-family: inherit; /* Inherit from pre */
-    line-height: inherit; /* Inherit from pre */
-    display: block;
-    white-space: pre;
-    word-wrap: normal;
-    box-shadow: none !important;
+.cm-scroller::-webkit-scrollbar-thumb:hover,
+#simpleEditor::-webkit-scrollbar-thumb:hover,
+.markdown-preview::-webkit-scrollbar-thumb:hover {
+    background: var(--button-hover);
 }
 
-/* Ensure inline code is distinctly different */
-.markdown-preview code:not(pre code) {
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace;
-    background-color: #f5f5f5 !important;
-    padding: 2px 6px !important;
-    border-radius: 4px !important;
-    font-size: 0.9em !important;
-    border: 1px solid #e0e0e0 !important;
-    line-height: 1.2 !important;
-    display: inline !important;
-    white-space: nowrap !important;
+/* Dark mode scrollbar */
+body.dark-mode .cm-scroller::-webkit-scrollbar-track,
+body.dark-mode #simpleEditor::-webkit-scrollbar-track,
+body.dark-mode .markdown-preview::-webkit-scrollbar-track {
+    background: var(--dark-border-color);
 }
 
-/* Dark mode code styling */
-body.dark-mode .markdown-preview pre {
-    background-color: #1e1e1e;
-    color: #e0e0e0;
-    border-left-color: var(--dark-button-background);
+body.dark-mode .cm-scroller::-webkit-scrollbar-thumb,
+body.dark-mode #simpleEditor::-webkit-scrollbar-thumb,
+body.dark-mode .markdown-preview::-webkit-scrollbar-thumb {
+    background: var(--dark-button-background);
 }
 
-body.dark-mode .markdown-preview pre code {
-    color: #e0e0e0 !important;
-    background: none !important;
-}
-
-body.dark-mode .markdown-preview code:not(pre code) {
-    background-color: #333 !important;
-    color: #e0e0e0 !important;
-    border-color: #555 !important;
+body.dark-mode .cm-scroller::-webkit-scrollbar-thumb:hover,
+body.dark-mode #simpleEditor::-webkit-scrollbar-thumb:hover,
+body.dark-mode .markdown-preview::-webkit-scrollbar-thumb:hover {
+    background: var(--dark-button-hover);
 }
 
 /* Update the new note button to have a consistent icon */
@@ -896,4 +1043,183 @@ body.dark-mode #darkModeToggle {
 
 body.dark-mode #darkModeToggle:hover {
     background-color: var(--dark-button-hover);
+}
+
+/* Add these improved styles to your notes.css file: */
+
+/* Markdown preview content styling - FIXED */
+.markdown-preview p {
+    margin: 0.5em 0; /* Reduced margin */
+    line-height: 1.5;
+}
+
+.markdown-preview h1 {
+    font-size: 1.8em;
+    margin: 1em 0 0.5em 0;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.3em;
+}
+
+.markdown-preview h2 {
+    font-size: 1.5em;
+    margin: 0.8em 0 0.4em 0;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.2em;
+}
+
+.markdown-preview h3 {
+    font-size: 1.3em;
+    margin: 0.7em 0 0.3em 0;
+    font-weight: 600;
+}
+
+.markdown-preview h4 {
+    font-size: 1.1em;
+    margin: 0.6em 0 0.3em 0;
+    font-weight: 600;
+}
+
+.markdown-preview h5 {
+    font-size: 1em;
+    margin: 0.5em 0 0.3em 0;
+    font-weight: 600;
+}
+
+.markdown-preview h6 {
+    font-size: 0.9em;
+    margin: 0.5em 0 0.3em 0;
+    font-weight: 600;
+}
+
+.markdown-preview strong {
+    font-weight: 600;
+}
+
+.markdown-preview em {
+    font-style: italic;
+}
+
+.markdown-preview del {
+    text-decoration: line-through;
+}
+
+.markdown-preview code {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    background-color: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+/* FIXED: Multi-line code blocks */
+.markdown-preview pre {
+    background-color: #f8f8f8;
+    padding: 15px;
+    border-radius: 6px;
+    overflow-x: auto;
+    border-left: 4px solid var(--button-background);
+    margin: 1em 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.markdown-preview pre code {
+    background: none;
+    padding: 0;
+    font-size: 0.9em;
+    color: inherit;
+    border-radius: 0;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    display: block;
+    white-space: pre;
+    overflow-x: auto;
+}
+
+/* Links */
+.markdown-preview a {
+    color: var(--button-background);
+    text-decoration: underline;
+}
+
+.markdown-preview a:hover {
+    color: var(--button-hover);
+}
+
+/* Images */
+.markdown-preview img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 0.5em 0;
+}
+
+/* Lists */
+.markdown-preview ul, .markdown-preview ol {
+    margin: 0.8em 0;
+    padding-left: 30px;
+}
+
+.markdown-preview li {
+    margin-bottom: 0.3em; /* Reduced from default */
+    line-height: 1.4;
+}
+
+.markdown-preview li:last-child {
+    margin-bottom: 0;
+}
+
+/* Nested lists */
+.markdown-preview ul ul, .markdown-preview ol ol, 
+.markdown-preview ul ol, .markdown-preview ol ul {
+    margin: 0.2em 0;
+}
+
+/* Tables (if you add table support later) */
+.markdown-preview table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+}
+
+.markdown-preview th, .markdown-preview td {
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.markdown-preview th {
+    background-color: #f5f5f5;
+    font-weight: 600;
+}
+
+/* Dark mode adjustments for preview */
+body.dark-mode .markdown-preview code {
+    background-color: #333;
+    color: #fff;
+}
+
+body.dark-mode .markdown-preview pre {
+    background-color: #2a2a2a;
+    color: #fff;
+    border-left-color: var(--dark-button-background);
+}
+
+body.dark-mode .markdown-preview pre code {
+    background-color: transparent;
+    color: #fff;
+}
+
+body.dark-mode .markdown-preview h1,
+body.dark-mode .markdown-preview h2 {
+    border-color: var(--dark-border-color);
+}
+
+body.dark-mode .markdown-preview th {
+    background-color: #333;
+}
+
+body.dark-mode .markdown-preview th, 
+body.dark-mode .markdown-preview td {
+    border-color: var(--dark-border-color);
 }
