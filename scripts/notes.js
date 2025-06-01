@@ -702,6 +702,24 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log('Initialization complete');
 });
 
+// Confirm modal overlay click to close
+const confirmOverlay = document.querySelector('.confirm-modal-overlay');
+if (confirmOverlay) {
+    confirmOverlay.addEventListener('click', function () {
+        const confirmCheckbox = document.getElementById('confirmModalCheckbox');
+        if (confirmCheckbox) confirmCheckbox.checked = false;
+    });
+}
+
+// Save options modal overlay click to close
+const saveOverlay = document.querySelector('.save-modal-overlay');
+if (saveOverlay) {
+    saveOverlay.addEventListener('click', function () {
+        const saveOptionsCheckbox = document.getElementById('saveOptionsModalCheckbox');
+        if (saveOptionsCheckbox) saveOptionsCheckbox.checked = false;
+    });
+}
+
 // Spoiler toggle functionality
 function toggleSpoiler(element) {
     element.classList.toggle('revealed');
@@ -772,35 +790,35 @@ document.addEventListener('keydown', function(e) {
         undo();
         return;
     }
-    
+
     // Ctrl+Y or Ctrl+Shift+Z for redo
     if ((e.ctrlKey && e.key === 'y') || (e.ctrlKey && e.shiftKey && e.key === 'z')) {
         e.preventDefault();
         redo();
         return;
     }
-    
-    // Escape key for toggle
+
+    // Escape key: close modals first, only toggle mode if no modal is open
     if (e.key === 'Escape') {
-        e.preventDefault();
-        if (markdownEditor && typeof markdownEditor.toggleMode === 'function') {
-            markdownEditor.toggleMode();
-        }
-        return;
-    }
-    
-    // Allow ESC to close any open modal
-    if (e.key === 'Escape') {
+        let modalClosed = false;
         // Close confirm modal if open
         const confirmCheckbox = document.getElementById('confirmModalCheckbox');
         if (confirmCheckbox && confirmCheckbox.checked) {
             confirmCheckbox.checked = false;
+            modalClosed = true;
         }
         // Close save options modal if open
         const saveOptionsCheckbox = document.getElementById('saveOptionsModalCheckbox');
         if (saveOptionsCheckbox && saveOptionsCheckbox.checked) {
             saveOptionsCheckbox.checked = false;
+            modalClosed = true;
         }
+        // Only toggle mode if no modal was closed
+        if (!modalClosed && markdownEditor && typeof markdownEditor.toggleMode === 'function') {
+            e.preventDefault();
+            markdownEditor.toggleMode();
+        }
+        return;
     }
 });
 
