@@ -48,19 +48,19 @@
         <div class="header-center">
             <!-- Move the toolbar to the header -->
             <div class="editor-toolbar">
-                <button id="undoButton" title="Undo">↶</button>
-                <button id="redoButton" title="Redo">↷</button>
-                <button id="saveButton" title="Save Note">💾</button>
-                <button id="deleteButton" title="Delete Note">🗑️</button>
-                <button id="clearButton" title="Clear Note">🧹</button>
-                <button id="txtButton" title="Export as TXT">📄</button>
-                <button id="mdButton" title="Export as MD">📝</button>
-                <button id="openFileButton" title="Open File">📂</button>
+                <button id="undoButton" data-tooltip="Undo">↶</button>
+                <button id="redoButton" data-tooltip="Redo">↷</button>
+                <button id="saveButton" data-tooltip="Save">💾</button>
+                <button id="deleteButton" data-tooltip="Delete Note">🗑️</button>
+                <button id="clearButton" data-tooltip="Clear Note">🧹</button>
+                <button id="txtButton" data-tooltip="Export as TXT">📄</button>
+                <button id="mdButton" data-tooltip="Export as MD">📝</button>
+                <button id="openFileButton" data-tooltip="Open File">📂</button>
             </div>
         </div>
 
         <div class="header-right">
-            <button id="darkModeToggle" class="dark-mode-btn">🌙</button>
+            <button id="darkModeToggle" class="dark-mode-btn" data-tooltip="Toggle Dark/Light Mode">🌙</button>
         </div>
     </header>
 
@@ -75,7 +75,7 @@
             <!-- Title row with inline toggle button -->
             <div class="title-row">
                 <input type="text" id="noteTitle" placeholder="📄 Enter note title (optional)" />
-                <button id="modeToggleButton" class="mode-toggle-button" title="Toggle Preview Mode">👁️</button>
+                <button id="modeToggleButton" class="mode-toggle-button" data-tooltip="Preview/Edit">👁️</button>
             </div>
 
             <div id="markdownEditor" class="markdown-editor-container"></div>

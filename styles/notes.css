@@ -297,18 +297,20 @@ button:hover {
     color: #9c27b0;
 }
 
-/* Tooltip styling */
-.editor-toolbar button::after {
-    content: attr(title);
+/* Tooltip styling for all app-side tooltips (toolbar, mode toggle, dark mode) */
+.editor-toolbar button::after,
+.mode-toggle-button::after,
+.dark-mode-btn::after {
+    content: attr(data-tooltip);
     position: absolute;
-    bottom: -32px;
+    top: -38px; /* Show above the button */
     left: 50%;
     transform: translateX(-50%);
     background-color: #333;
     color: white;
-    padding: 4px 8px;
+    padding: 6px 10px;
     border-radius: 4px;
-    font-size: 11px;
+    font-size: 12px;
     white-space: nowrap;
     opacity: 0;
     pointer-events: none;
@@ -316,7 +318,9 @@ button:hover {
     z-index: 100;
 }
 
-.editor-toolbar button:hover::after {
+.editor-toolbar button:hover::after,
+.mode-toggle-button:hover::after,
+.dark-mode-btn:hover::after {
     opacity: 1;
 }
 
@@ -343,29 +347,33 @@ button:hover {
     transform: translateY(-1px);
 }
 
-/* Add these styles for the title row with inline toggle button */
-
+/* Title row as a single bar with inline toggle button */
 .title-row {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    align-items: stretch; /* Make children the same height */
     width: 100%;
     margin-bottom: 16px;
+    gap: 0; /* Remove gap so input and button are flush */
+    position: relative;
 }
 
+/* Note title input fills available space, no margin, rounded only on left */
 #noteTitle {
-    flex: 1; /* Take up available space */
+    flex: 1;
+    width: 100%;
     padding: 16px 20px;
     font-size: 20px;
     font-weight: 600;
-    border-radius: 12px;
+    border-radius: 12px 0 0 12px; /* Only left corners rounded */
     border: 2px solid var(--border-color);
     background-color: var(--card-background);
     color: var(--text-color);
     box-sizing: border-box;
     transition: all 0.3s ease;
     line-height: 1.4;
-    margin: 0; /* Remove margin since it's in flex container */
+    margin: 0; /* Remove margin */
+    border-right: none; /* Remove right border to merge with button */
+    height: 44px; /* Match button height */
 }
 
 #noteTitle:focus {
@@ -375,23 +383,23 @@ button:hover {
     transform: translateY(-1px);
 }
 
-/* Compact toggle button styling */
+/* Preview/Edit toggle button flush with input, rounded only on right */
 .mode-toggle-button {
-    flex-shrink: 0; /* Don't shrink */
+    flex-shrink: 0;
     width: 44px;
     height: 44px;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    font-size: 20px;
+    border: 2px solid var(--border-color);
+    border-left: none; /* Remove left border to merge with input */
+    border-radius: 0 12px 12px 0; /* Only right corners rounded */
     background-color: var(--button-background);
     color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: none;
+    transition: all 0.3s ease;
     position: relative;
 }
 
@@ -405,11 +413,11 @@ button:hover {
     transform: translateY(0);
 }
 
-/* Tooltip for the toggle button */
+/* Tooltip for the toggle button - show above the button */
 .mode-toggle-button::after {
-    content: attr(title);
+    content: attr(data-tooltip);
     position: absolute;
-    bottom: -32px;
+    top: -38px; /* Place above the button */
     left: 50%;
     transform: translateX(-50%);
     background-color: #333;
@@ -426,6 +434,40 @@ button:hover {
 
 .mode-toggle-button:hover::after {
     opacity: 1;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+    .title-row {
+        margin-bottom: 12px;
+    }
+    #noteTitle {
+        font-size: 18px;
+        padding: 14px 16px;
+        border-radius: 10px 0 0 10px;
+        height: 40px;
+    }
+    .mode-toggle-button {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+        border-radius: 0 10px 10px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    #noteTitle {
+        font-size: 16px;
+        padding: 12px 14px;
+        border-radius: 8px 0 0 8px;
+        height: 36px;
+    }
+    .mode-toggle-button {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+        border-radius: 0 8px 8px 0;
+    }
 }
 
 /* Dark mode styles for toggle button */
