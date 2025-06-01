@@ -188,11 +188,44 @@ function markdownToHtml(markdownText) {
             const content = match.replace(/<!BLOCKQUOTE!>/g, '').trim();
             return `<blockquote>${content}</blockquote>`;
         })
-        // Handle lists
-        .replace(/^\d+\.\s+(.*)$/gm, '<ol><li>$1</li></ol>')
-        .replace(/<\/ol>\s*<ol>/g, '')
-        .replace(/^[-*+]\s+(.*)$/gm, '<ul><li>$1</li></ul>')
-        .replace(/<\/ul>\s*<ul>/g, '')
+        // Handle lists (supports nesting)
+        .replace(/^([\s\S]*?)$/gm, function(_, block) {
+            // Split into lines
+            const lines = block.split('\n');
+            let html = '';
+            let stack = [];
+            let lastIndent = 0;
+            lines.forEach(line => {
+                const match = /^(\s*)([-*+]|\d+\.)\s+(.*)$/.exec(line);
+                if (match) {
+                    const indent = match[1].length;
+                    const isOrdered = !!match[2].match(/^\d+\.$/);
+                    const tag = isOrdered ? 'ol' : 'ul';
+                    // Open new list(s) if indent increased
+                    while (stack.length < indent / 2 + 1) {
+                        html += `<${tag}>`;
+                        stack.push(tag);
+                    }
+                    // Close list(s) if indent decreased
+                    while (stack.length > indent / 2 + 1) {
+                        html += `</${stack.pop()}>`;
+                    }
+                    html += `<li>${match[3]}</li>`;
+                    lastIndent = indent;
+                } else {
+                    // Close all open lists if a non-list line is found
+                    while (stack.length) {
+                        html += `</${stack.pop()}>`;
+                    }
+                    html += line ? `<p>${line}</p>` : '';
+                }
+            });
+            // Close any remaining open lists
+            while (stack.length) {
+                html += `</${stack.pop()}>`;
+            }
+            return html;
+        })
         // Handle links and images
         .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
         .replace(/!\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<img src="$2" alt="$1" />')
@@ -710,6 +743,20 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('undoButton').addEventListener('click', undo);
     document.getElementById('redoButton').addEventListener('click', redo);
     
+    document.getElementById('saveButton').addEventListener('click', function() {
+        showSaveOptionsModal(
+            "Would you like to update the existing note or save as a new note?",
+            function onSave() {
+                saveNote(); // Update existing note
+            },
+            function onCancel() {
+                // Save as new note
+                currentNoteId = null;
+                saveNote();
+            }
+        );
+    });
+    
     // Initial render
     renderNotesList();
     
@@ -866,3 +913,46 @@ document.addEventListener('click', function(event) {
         }
     }
 });
+
+function showConfirmModal(message, onConfirm) {
+    // Show the modal
+    const confirmCheckbox = document.getElementById('confirmModalCheckbox');
+    const modalMessage = document.getElementById('modalMessage');
+    const modalCancelBtn = document.getElementById('modalCancelBtn');
+    const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+
+    if (!confirmCheckbox || !modalMessage || !modalCancelBtn || !modalConfirmBtn) return;
+
+    confirmCheckbox.checked = true;
+    modalMessage.textContent = message;
+
+    // Remove previous listeners to avoid stacking
+    modalCancelBtn.onclick = function() {
+        confirmCheckbox.checked = false;
+    };
+    modalConfirmBtn.onclick = function() {
+        confirmCheckbox.checked = false;
+        if (typeof onConfirm === 'function') onConfirm();
+    };
+}
+
+function showSaveOptionsModal(message, onSave, onCancel) {
+    const saveOptionsCheckbox = document.getElementById('saveOptionsModalCheckbox');
+    const saveModalMessage = document.getElementById('saveOptionsMessage'); // FIXED
+    const saveModalCancelBtn = document.getElementById('saveAsNewBtn');     // FIXED
+    const saveModalSaveBtn = document.getElementById('saveUpdateBtn');      // FIXED
+
+    if (!saveOptionsCheckbox || !saveModalMessage || !saveModalCancelBtn || !saveModalSaveBtn) return;
+
+    saveOptionsCheckbox.checked = true;
+    saveModalMessage.textContent = message;
+
+    saveModalCancelBtn.onclick = function() {
+        saveOptionsCheckbox.checked = false;
+        if (typeof onCancel === 'function') onCancel();
+    };
+    saveModalSaveBtn.onclick = function() {
+        saveOptionsCheckbox.checked = false;
+        if (typeof onSave === 'function') onSave();
+    };
+}
