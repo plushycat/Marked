@@ -339,6 +339,14 @@ function setupSimpleEditor() {
         toggleMode();
     });
     
+    // Click handler for preview container
+    previewContainer.addEventListener('click', function () {
+        // Only switch if currently in preview mode
+        if (globalIsPreviewMode && typeof markdownEditor.toggleMode === 'function') {
+            markdownEditor.toggleMode();
+        }
+    });
+    
     return {
         getRawMarkdown: () => textarea.value,
         setContent: (content) => {
@@ -511,6 +519,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         toggleButton.addEventListener('click', function(e) {
             e.stopPropagation();
             toggleMode();
+        });
+        
+        // Click handler for preview container
+        previewContainer.addEventListener('click', function () {
+            // Only switch if currently in preview mode
+            if (globalIsPreviewMode && typeof markdownEditor.toggleMode === 'function') {
+                markdownEditor.toggleMode();
+            }
         });
         
         const view = new EditorView({

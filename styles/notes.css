@@ -86,6 +86,7 @@ header .header-center {
     align-items: center;
     flex: 2; /* Give toolbar more space */
     max-width: 500px; /* Set a reasonable max width */
+    padding-left: 130px;
 }
 
 header .header-right {
@@ -93,6 +94,9 @@ header .header-right {
     align-items: center;
     flex-shrink: 0;
     min-width: 80px; /* Ensure minimum width */
+    margin-left: auto; /* Pushes the dark mode button as far right as possible */
+    justify-content: flex-end; /* Align content to the right */
+    position: relative;
 }
 
 header h1 {
