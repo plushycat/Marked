@@ -50,6 +50,18 @@ function loadNoteById(noteId) {
         if (markdownEditor) {
             clearUndoRedoStacks(); // Clear when loading a new note
             markdownEditor.setContent(note.content);
+            // Ensure preview mode is active after loading a note
+            if (!globalIsPreviewMode && typeof markdownEditor.toggleMode === 'function') {
+                markdownEditor.toggleMode();
+            }
+            // --- Force update preview pane if already in preview mode ---
+            if (globalIsPreviewMode) {
+                // Try to find the preview container and update it
+                const previewContainer = document.querySelector('.markdown-preview');
+                if (previewContainer) {
+                    previewContainer.innerHTML = markdownToHtml(note.content);
+                }
+            }
         }
         document.getElementById('noteTimestamp').textContent = 
             new Date(note.timestamp).toLocaleString();
@@ -83,22 +95,27 @@ function saveNote() {
 // Delete the current note
 function deleteNote() {
     if (currentNoteId) {
-        notes = notes.filter(n => n.id !== currentNoteId);
-        currentNoteId = null;
-        if (markdownEditor) {
-            markdownEditor.setContent('');
-        }
-        saveNotesToStorage();
-        renderNotesList();
+        showConfirmModal("Are you sure you want to delete this note? This cannot be undone.", () => {
+            notes = notes.filter(n => n.id !== currentNoteId);
+            currentNoteId = null;
+            if (markdownEditor) {
+                markdownEditor.setContent('');
+            }
+            saveNotesToStorage();
+            renderNotesList();
+        });
     }
 }
 
 // Clear the current note
 function clearNote() {
-    if (markdownEditor) {
-        markdownEditor.setContent('');
-    }
-    document.getElementById('noteTitle').value = '';
+    showConfirmModal("Are you sure you want to clear this note?", () => {
+        if (markdownEditor) {
+            markdownEditor.setContent('');
+        }
+        document.getElementById('noteTitle').value = '';
+        document.getElementById('noteTimestamp').textContent = '';
+    });
 }
 
 // Export the current note to .txt format
@@ -649,7 +666,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
     // Setup button event listeners
-    document.getElementById('saveButton').addEventListener('click', saveNote);
     document.getElementById('deleteButton').addEventListener('click', deleteNote);
     document.getElementById('clearButton').addEventListener('click', clearNote);
     document.getElementById('txtButton').addEventListener('click', exportNoteTxt);
@@ -772,4 +788,76 @@ document.addEventListener('keydown', function(e) {
         }
         return;
     }
+    
+    // Allow ESC to close any open modal
+    if (e.key === 'Escape') {
+        // Close confirm modal if open
+        const confirmCheckbox = document.getElementById('confirmModalCheckbox');
+        if (confirmCheckbox && confirmCheckbox.checked) {
+            confirmCheckbox.checked = false;
+        }
+        // Close save options modal if open
+        const saveOptionsCheckbox = document.getElementById('saveOptionsModalCheckbox');
+        if (saveOptionsCheckbox && saveOptionsCheckbox.checked) {
+            saveOptionsCheckbox.checked = false;
+        }
+    }
 });
+
+function showConfirmModal(message, onConfirm) {
+    document.getElementById('modalMessage').textContent = message;
+    document.getElementById('confirmModalCheckbox').checked = true;
+    const confirmBtn = document.getElementById('modalConfirmBtn');
+    const cancelBtn = document.getElementById('modalCancelBtn');
+    // Remove previous listeners
+    confirmBtn.onclick = null;
+    cancelBtn.onclick = null;
+    confirmBtn.onclick = function() {
+        document.getElementById('confirmModalCheckbox').checked = false;
+        onConfirm();
+    };
+    cancelBtn.onclick = function() {
+        document.getElementById('confirmModalCheckbox').checked = false;
+    };
+}
+
+function showSaveOptionsModal(onUpdate, onSaveAsNew) {
+    document.getElementById('saveOptionsModalCheckbox').checked = true;
+    const updateBtn = document.getElementById('saveUpdateBtn');
+    const saveAsNewBtn = document.getElementById('saveAsNewBtn');
+    // Remove previous listeners
+    updateBtn.onclick = null;
+    saveAsNewBtn.onclick = null;
+    updateBtn.onclick = function() {
+        document.getElementById('saveOptionsModalCheckbox').checked = false;
+        onUpdate();
+    };
+    saveAsNewBtn.onclick = function() {
+        document.getElementById('saveOptionsModalCheckbox').checked = false;
+        onSaveAsNew();
+    };
+}
+
+document.getElementById('saveButton').onclick = function() {
+    showSaveOptionsModal(
+        () => saveNote(), // Update existing
+        () => {
+            // Save as new
+            if (!markdownEditor) return;
+            const noteContent = markdownEditor.getRawMarkdown();
+            const noteTitle = document.getElementById('noteTitle').value.trim();
+            const title = noteTitle || noteContent.split('\n')[0] || 'Untitled Note';
+            const newNote = {
+                id: Date.now(),
+                content: noteContent,
+                title: title,
+                timestamp: Date.now()
+            };
+            notes.push(newNote);
+            currentNoteId = newNote.id;
+            saveNotesToStorage();
+            renderNotesList();
+            loadNoteById(newNote.id);
+        }
+    );
+};
