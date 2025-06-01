@@ -188,36 +188,34 @@ function markdownToHtml(markdownText) {
             const content = match.replace(/<!BLOCKQUOTE!>/g, '').trim();
             return `<blockquote>${content}</blockquote>`;
         })
-        // Handle lists (supports nesting)
-        .replace(/^([\s\S]*?)$/gm, function(_, block) {
-            // Split into lines
-            const lines = block.split('\n');
+        // Handle lists (supports nesting, both unordered and ordered)
+        .replace(/((?:^(?:\s*)(?:[-*+]|\d+\.)\s+.*\n?)+)/gm, function(listBlock) {
+            const lines = listBlock.trimEnd().split('\n');
             let html = '';
             let stack = [];
-            let lastIndent = 0;
             lines.forEach(line => {
                 const match = /^(\s*)([-*+]|\d+\.)\s+(.*)$/.exec(line);
                 if (match) {
-                    const indent = match[1].length;
-                    const isOrdered = !!match[2].match(/^\d+\.$/);
+                    const indent = Math.floor(match[1].replace(/\t/g, '  ').length / 2);
+                    const isOrdered = /^\d+\.$/.test(match[2]);
                     const tag = isOrdered ? 'ol' : 'ul';
+
                     // Open new list(s) if indent increased
-                    while (stack.length < indent / 2 + 1) {
+                    while (stack.length < indent + 1) {
                         html += `<${tag}>`;
                         stack.push(tag);
                     }
                     // Close list(s) if indent decreased
-                    while (stack.length > indent / 2 + 1) {
+                    while (stack.length > indent + 1) {
                         html += `</${stack.pop()}>`;
+                    }
+                    // If type changed at this level, close and reopen
+                    if (stack[stack.length - 1] !== tag) {
+                        html += `</${stack.pop()}>`;
+                        html += `<${tag}>`;
+                        stack.push(tag);
                     }
                     html += `<li>${match[3]}</li>`;
-                    lastIndent = indent;
-                } else {
-                    // Close all open lists if a non-list line is found
-                    while (stack.length) {
-                        html += `</${stack.pop()}>`;
-                    }
-                    html += line ? `<p>${line}</p>` : '';
                 }
             });
             // Close any remaining open lists
