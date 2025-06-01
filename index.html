@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="styles/notes.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@codemirror/view@6/dist/index.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@codemirror/theme-one-dark@6/dist/theme.css">
+    <link rel="icon" type="image/x-icon" href="assets/icon.ico">
     <style>
         /* Specific button hover colors for undo/redo */
         #undoButton:hover {
@@ -47,6 +48,11 @@
 
         <div class="header-center">
             <!-- Move the toolbar to the header -->
+            <!-- Help button as a separate element to the left of the toolbar -->
+            <button id="helpButton" class="help-btn" data-tooltip="Markdown Help" aria-label="Markdown Help">
+                <img src="assets/help_light.png" alt="Markdown Help" class="help-icon help-icon-light">
+                <img src="assets/help_dark.png" alt="Markdown Help" class="help-icon help-icon-dark">
+            </button>
             <div class="editor-toolbar">
                 <button id="undoButton" data-tooltip="Undo">↶</button>
                 <button id="redoButton" data-tooltip="Redo">↷</button>
@@ -112,6 +118,51 @@
             <div class="modal-actions">
                 <button id="saveUpdateBtn" class="modal-btn modal-confirm">Update Existing</button>
                 <button id="saveAsNewBtn" class="modal-btn modal-cancel">Save as New</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <input type="checkbox" id="helpModalCheckbox" class="modal-toggle" hidden>
+    <div class="modal-overlay help-modal-overlay"></div>
+    <div class="modal-window" id="helpModal">
+        <div class="modal-content">
+            <h2>Markdown Guide</h2>
+            <div class="markdown-help-examples">
+                <div>
+                    <b>Markdown</b>
+                    <pre id="helpMarkdownExample">
+# Heading 1
+## Heading 2
+### Heading 3
+#### Heading 4
+##### Heading 5
+
+**Bold**, *italic* and __underline__
+
+- List item 1
+
+[Link](https://example.com)
+
+||spoiler||
+
+p{secret}p
+
+`inline code`
+
+```
+multiline code
+```
+> Blockquote
+                    </pre>
+                </div>
+                <div>
+                    <b>Preview</b>
+                    <div id="helpMarkdownPreview" class="markdown-preview" style="text-align:left;"></div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="helpModalCloseBtn" class="modal-btn modal-cancel">Close</button>
             </div>
         </div>
     </div>
