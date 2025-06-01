@@ -8,6 +8,34 @@
     <link rel="stylesheet" href="styles/notes.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@codemirror/view@6/dist/index.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@codemirror/theme-one-dark@6/dist/theme.css">
+    <style>
+        /* Specific button hover colors for undo/redo */
+        #undoButton:hover {
+            background-color: rgba(103, 58, 183, 0.15);
+            color: #673ab7;
+        }
+
+        #redoButton:hover {
+            background-color: rgba(103, 58, 183, 0.15);
+            color: #673ab7;
+        }
+
+        /* Disabled state for undo/redo buttons */
+        #undoButton:disabled,
+        #redoButton:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        #undoButton:disabled:hover,
+        #redoButton:disabled:hover {
+            background-color: transparent !important;
+            color: var(--text-color) !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -16,30 +44,42 @@
             <h1><b>Marked</b></h1>
             <p>Simplified markdown note-taking.</p>
         </div>
-        <button id="darkModeToggle" class="dark-mode-btn">🌙</button>
+
+        <div class="header-center">
+            <!-- Move the toolbar to the header -->
+            <div class="editor-toolbar">
+                <button id="undoButton" data-tooltip="Undo">↶</button>
+                <button id="redoButton" data-tooltip="Redo">↷</button>
+                <button id="saveButton" data-tooltip="Save">💾</button>
+                <button id="deleteButton" data-tooltip="Delete Note">🗑️</button>
+                <button id="clearButton" data-tooltip="Clear Note">🧹</button>
+                <button id="txtButton" data-tooltip="Export as TXT">📄</button>
+                <button id="mdButton" data-tooltip="Export as MD">📝</button>
+                <button id="openFileButton" data-tooltip="Open File">📂</button>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <button id="darkModeToggle" class="dark-mode-btn" data-tooltip="Toggle Dark/Light Mode">🌙</button>
+        </div>
     </header>
 
     <main class="app-container">
         <aside class="notes-sidebar">
-            <input type="text" id="searchInput" placeholder="Search notes..." />
-            <button id="newNoteButton">+ New Note</button>
+            <input type="text" id="searchInput" placeholder="🔍 Search notes..." />
+            <button id="newNoteButton">📝 New Note</button>
             <div id="notesList"></div>
         </aside>
 
         <section class="note-editor">
-            <!-- Optional Note Title Input Field -->
-            <input type="text" id="noteTitle" placeholder="Enter note title (optional)" />
+            <!-- Title row with inline toggle button -->
+            <div class="title-row">
+                <input type="text" id="noteTitle" placeholder="📄 Enter note title (optional)" />
+                <button id="modeToggleButton" class="mode-toggle-button" data-tooltip="Preview/Edit">👁️</button>
+            </div>
 
             <div id="markdownEditor" class="markdown-editor-container"></div>
 
-            <div class="editor-buttons">
-                <button id="saveButton">Save Note</button>
-                <button id="deleteButton">Delete Note</button>
-                <button id="clearButton">Clear Note</button>
-                <button id="txtButton">Export as .txt</button>
-                <button id="mdButton">Export as .md</button>
-                <button id="openFileButton">Open File</button>
-            </div>
             <!-- Hidden file input for opening .md or .txt files -->
             <input type="file" id="fileInput" accept=".txt,.md" style="display: none;" />
 
@@ -54,7 +94,7 @@
     <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/basic-setup@0.20.0/dist/index.js"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/lang-markdown@6/dist/index.js"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/theme-one-dark@6/dist/theme.js"></script>
-    
+
     <script src="scripts/notes.js"></script>
 </body>
 

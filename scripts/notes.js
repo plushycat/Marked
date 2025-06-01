@@ -9,6 +9,12 @@ try {
 let currentNoteId = null;
 let markdownEditor = null; // Add this declaration
 
+// Add these variables at the top with other global variables
+let undoStack = [];
+let redoStack = [];
+let maxUndoStackSize = 100; // Limit to prevent memory issues, but still very generous
+let globalIsPreviewMode = false; // Add this with other global variables at the top
+
 // Save notes to localStorage
 function saveNotesToStorage() {
     localStorage.setItem('notes', JSON.stringify(notes));
@@ -42,6 +48,7 @@ function loadNoteById(noteId) {
     if (note) {
         document.getElementById('noteTitle').value = note.title || '';
         if (markdownEditor) {
+            clearUndoRedoStacks(); // Clear when loading a new note
             markdownEditor.setContent(note.content);
         }
         document.getElementById('noteTimestamp').textContent = 
@@ -124,6 +131,7 @@ function exportNoteMd() {
 function createNewNote() {
     currentNoteId = null;
     if (markdownEditor) {
+        clearUndoRedoStacks(); // Clear when creating a new note
         markdownEditor.setContent('');
     }
     document.getElementById('noteTitle').value = '';
@@ -237,17 +245,39 @@ function toggleDarkMode() {
     const isDarkMode = document.body.classList.contains('dark-mode');
     localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
     
+    // Update the button icon
+    updateDarkModeButtonIcon(isDarkMode);
+    
     if (markdownEditor && markdownEditor.updateTheme) {
         markdownEditor.updateTheme();
     }
 }
 
-// Initialize Dark Mode from localStorage
+// Add this new function to update the button icon:
+function updateDarkModeButtonIcon(isDarkMode) {
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    if (darkModeToggle) {
+        if (isDarkMode) {
+            darkModeToggle.textContent = '☀️'; // Sun icon for light mode option
+            darkModeToggle.title = 'Switch to Light Mode';
+        } else {
+            darkModeToggle.textContent = '🌙'; // Moon icon for dark mode option
+            darkModeToggle.title = 'Switch to Dark Mode';
+        }
+    }
+}
+
+// Update the initializeDarkMode function to set the correct initial icon:
 function initializeDarkMode() {
     const darkModeSetting = localStorage.getItem('darkMode');
-    if (darkModeSetting === 'enabled') {
+    const isDarkMode = darkModeSetting === 'enabled';
+    
+    if (isDarkMode) {
         document.body.classList.add('dark-mode');
     }
+    
+    // Set the correct icon on page load
+    updateDarkModeButtonIcon(isDarkMode);
 }
 
 // Simple text editor setup (fallback)
@@ -257,18 +287,18 @@ function setupSimpleEditor() {
     // Create a simple textarea
     const textarea = document.createElement('textarea');
     textarea.id = 'simpleEditor';
-    textarea.style.width = '100%';
-    textarea.style.height = '300px';
-    textarea.style.fontFamily = 'monospace';
-    textarea.style.fontSize = '14px';
-    textarea.style.border = 'none';
-    textarea.style.outline = 'none';
-    textarea.style.padding = '15px';
-    textarea.style.resize = 'none';
-    textarea.style.backgroundColor = 'var(--card-background)';
-    textarea.style.color = 'var(--text-color)';
+    textarea.className = 'simple-editor-textarea';
     
     container.appendChild(textarea);
+    
+    // Add input event listener for undo tracking
+    let inputTimeout;
+    textarea.addEventListener('input', function() {
+        clearTimeout(inputTimeout);
+        inputTimeout = setTimeout(() => {
+            saveToUndoStack(textarea.value);
+        }, 500);
+    });
     
     // Create preview container
     const previewContainer = document.createElement('div');
@@ -276,91 +306,58 @@ function setupSimpleEditor() {
     previewContainer.style.display = 'none';
     container.parentNode.insertBefore(previewContainer, container.nextSibling);
     
-    // Create toggle button
-    const toggleButton = document.createElement('button');
-    toggleButton.textContent = 'Preview';
-    toggleButton.style.marginBottom = '10px';
-    toggleButton.style.width = 'auto';
-    toggleButton.style.padding = '8px 16px';
-    container.parentNode.insertBefore(toggleButton, container);
+    // Use the existing button instead of creating a new one
+    const toggleButton = document.getElementById('modeToggleButton');
     
     let isPreviewMode = false;
     
     // Function to toggle between edit and preview modes
     function toggleMode() {
         isPreviewMode = !isPreviewMode;
+        globalIsPreviewMode = isPreviewMode;
         
         if (isPreviewMode) {
             container.style.display = 'none';
             previewContainer.style.display = 'block';
-            toggleButton.textContent = 'Edit';
+            toggleButton.textContent = '✏️'; // Edit icon
+            toggleButton.title = 'Switch to Edit Mode';
             previewContainer.innerHTML = markdownToHtml(textarea.value);
         } else {
             container.style.display = 'block';
             previewContainer.style.display = 'none';
-            toggleButton.textContent = 'Preview';
-            textarea.focus(); // Focus the textarea when switching back to edit mode
+            toggleButton.textContent = '👁️'; // Preview icon
+            toggleButton.title = 'Switch to Preview Mode';
+            textarea.focus();
         }
+        
+        console.log('Toggled to:', isPreviewMode ? 'Preview' : 'Edit');
     }
     
     // Toggle button click handler
     toggleButton.addEventListener('click', function(e) {
-        e.stopPropagation(); // Prevent event bubbling
+        e.stopPropagation();
         toggleMode();
     });
     
-    // Click outside handler for simple editor
-    document.addEventListener('click', function(e) {
-        // Check if click is outside the editor area
-        const editorArea = container.parentNode; // The .note-editor section
-        const clickedInsideEditor = container.contains(e.target) || 
-                                  previewContainer.contains(e.target) || 
-                                  toggleButton.contains(e.target) ||
-                                  editorArea.querySelector('#noteTitle').contains(e.target) ||
-                                  editorArea.querySelector('.editor-buttons').contains(e.target);
-        
-        // Don't toggle if clicking on spoilers, password content, or links
-        const isInteractiveElement = e.target.classList.contains('spoiler') ||
-                                   e.target.classList.contains('password-content') ||
-                                   e.target.tagName === 'A' ||
-                                   e.target.closest('.spoiler') ||
-                                   e.target.closest('.password-content') ||
-                                   e.target.closest('a');
-        
-        if (!clickedInsideEditor && !isInteractiveElement) {
-            // Only toggle to preview mode if we're currently in edit mode
-            if (!isPreviewMode) {
-                toggleMode();
-            }
-        }
-    });
-    
-    // Click on preview to go back to edit mode
-    previewContainer.addEventListener('click', function(e) {
-        // Don't switch to edit mode if clicking on interactive elements
-        if (e.target.classList.contains('spoiler') || 
-            e.target.classList.contains('password-content') ||
-            e.target.tagName === 'A' ||
-            e.target.closest('.spoiler') ||
-            e.target.closest('.password-content') ||
-            e.target.closest('a')) {
-            e.stopPropagation();
-            return; // Exit early, don't toggle mode
-        }
-        
-        e.stopPropagation(); // Prevent event bubbling
-        if (isPreviewMode) {
-            toggleMode();
+    // Click handler for preview container
+    previewContainer.addEventListener('click', function () {
+        // Only switch if currently in preview mode
+        if (globalIsPreviewMode && typeof markdownEditor.toggleMode === 'function') {
+            markdownEditor.toggleMode();
         }
     });
     
     return {
         getRawMarkdown: () => textarea.value,
         setContent: (content) => {
+            const oldContent = textarea.value;
             textarea.value = content || '';
+            
+            if (oldContent !== textarea.value) {
+                saveToUndoStack(oldContent);
+            }
         },
         updateTheme: () => {
-            // Simple theme update for textarea
             if (document.body.classList.contains('dark-mode')) {
                 textarea.style.backgroundColor = '#1e1e1e';
                 textarea.style.color = '#e0e0e0';
@@ -374,50 +371,84 @@ function setupSimpleEditor() {
     };
 }
 
-// Spoiler toggle functionality for preview mode
-function toggleSpoiler(element) {
-    console.log('Toggling spoiler:', element); // Debug log
-    element.classList.toggle('revealed');
-    
-    // Add visual feedback
-    if (element.classList.contains('revealed')) {
-        element.style.transform = 'scale(1.02)';
-        setTimeout(() => {
-            element.style.transform = '';
-        }, 150);
-    }
-}
-
-// Password toggle functionality
-document.body.addEventListener('click', function(event) {
-    console.log('Click detected on:', event.target, 'Classes:', event.target.classList); // Debug log
-    
-    // Handle password content
-    if (event.target.classList.contains('show-password')) {
-        const passwordContent = event.target.nextElementSibling;
-        if (passwordContent.style.display === 'none') {
-            passwordContent.style.display = 'block';
-            event.target.textContent = 'Hide Password';
-        } else {
-            passwordContent.style.display = 'none';
-            event.target.textContent = 'Show Password';
-        }
+// Add undo/redo functionality
+function saveToUndoStack(content) {
+    // Don't save if content is the same as the last entry
+    if (undoStack.length > 0 && undoStack[undoStack.length - 1] === content) {
         return;
     }
     
-    // Handle spoiler content - simplified and more reliable
-    if (event.target.classList.contains('spoiler')) {
-        console.log('Spoiler clicked!'); // Debug log
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
-        
-        toggleSpoiler(event.target);
-        return false;
+    undoStack.push(content);
+    
+    // Limit stack size
+    if (undoStack.length > maxUndoStackSize) {
+        undoStack.shift(); // Remove oldest entry
     }
-}, true); // Use capture phase to catch events early
+    
+    // Clear redo stack when new content is added
+    redoStack = [];
+    
+    updateUndoRedoButtons();
+}
 
-// Single DOMContentLoaded event listener
+function undo() {
+    if (undoStack.length === 0) return;
+    
+    if (!markdownEditor) return;
+    
+    const currentContent = markdownEditor.getRawMarkdown();
+    
+    // Save current state to redo stack
+    redoStack.push(currentContent);
+    
+    // Get previous state
+    const previousContent = undoStack.pop();
+    
+    // Set the content without triggering another undo save
+    markdownEditor.setContent(previousContent);
+    
+    updateUndoRedoButtons();
+}
+
+function redo() {
+    if (redoStack.length === 0) return;
+    
+    if (!markdownEditor) return;
+    
+    const currentContent = markdownEditor.getRawMarkdown();
+    
+    // Save current state to undo stack
+    undoStack.push(currentContent);
+    
+    // Get next content
+    const nextContent = redoStack.pop();
+    
+    // Set the content
+    markdownEditor.setContent(nextContent);
+    
+    updateUndoRedoButtons();
+}
+
+function updateUndoRedoButtons() {
+    const undoButton = document.getElementById('undoButton');
+    const redoButton = document.getElementById('redoButton');
+    
+    if (undoButton) {
+        undoButton.disabled = undoStack.length === 0;
+    }
+    
+    if (redoButton) {
+        redoButton.disabled = redoStack.length === 0;
+    }
+}
+
+function clearUndoRedoStacks() {
+    undoStack = [];
+    redoStack = [];
+    updateUndoRedoButtons();
+}
+
+// Try to load CodeMirror, fallback to simple editor
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('DOM loaded, initializing...');
     
@@ -448,29 +479,55 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         console.log('CodeMirror modules loaded successfully');
         
-        // Setup CodeMirror editor
         const container = document.getElementById('markdownEditor');
         
-        // Create preview container
         const previewContainer = document.createElement('div');
         previewContainer.className = 'markdown-preview';
         previewContainer.style.display = 'none';
         container.parentNode.insertBefore(previewContainer, container.nextSibling);
         
-        // Create toggle button
-        const toggleButton = document.createElement('button');
-        toggleButton.textContent = 'Preview';
-        toggleButton.style.marginBottom = '10px';
-        toggleButton.style.width = 'auto';
-        toggleButton.style.padding = '8px 16px';
-        container.parentNode.insertBefore(toggleButton, container);
+        // Use the existing button instead of creating a new one
+        const toggleButton = document.getElementById('modeToggleButton');
         
         let isPreviewMode = false;
         let currentContent = '';
+        let changeTimeout;
         
-        const getTheme = () => {
-            return document.body.classList.contains('dark-mode') ? [oneDark] : [];
-        };
+        // Function to toggle between edit and preview modes
+        function toggleMode() {
+            isPreviewMode = !isPreviewMode;
+            globalIsPreviewMode = isPreviewMode;
+            
+            if (isPreviewMode) {
+                container.style.display = 'none';
+                previewContainer.style.display = 'block';
+                toggleButton.textContent = '✏️'; // Edit icon
+                toggleButton.title = 'Switch to Edit Mode';
+                previewContainer.innerHTML = markdownToHtml(currentContent);
+            } else {
+                container.style.display = 'block';
+                previewContainer.style.display = 'none';
+                toggleButton.textContent = '👁️'; // Preview icon
+                toggleButton.title = 'Switch to Preview Mode';
+                view.focus();
+            }
+            
+            console.log('Toggled to:', isPreviewMode ? 'Preview' : 'Edit');
+        }
+        
+        // Toggle button click handler
+        toggleButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleMode();
+        });
+        
+        // Click handler for preview container
+        previewContainer.addEventListener('click', function () {
+            // Only switch if currently in preview mode
+            if (globalIsPreviewMode && typeof markdownEditor.toggleMode === 'function') {
+                markdownEditor.toggleMode();
+            }
+        });
         
         const view = new EditorView({
             state: EditorState.create({
@@ -481,7 +538,17 @@ document.addEventListener('DOMContentLoaded', async function() {
                     ...getTheme(),
                     EditorView.updateListener.of((update) => {
                         if (update.docChanged) {
+                            const oldContent = currentContent;
                             currentContent = update.state.doc.toString();
+                            
+                            // Debounced undo save
+                            clearTimeout(changeTimeout);
+                            changeTimeout = setTimeout(() => {
+                                if (oldContent !== currentContent) {
+                                    saveToUndoStack(oldContent);
+                                }
+                            }, 500);
+                            
                             if (isPreviewMode) {
                                 previewContainer.innerHTML = markdownToHtml(currentContent);
                             }
@@ -495,74 +562,35 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Function to toggle between edit and preview modes
         function toggleMode() {
             isPreviewMode = !isPreviewMode;
+            globalIsPreviewMode = isPreviewMode;
             
             if (isPreviewMode) {
                 container.style.display = 'none';
                 previewContainer.style.display = 'block';
-                toggleButton.textContent = 'Edit';
+                toggleButton.textContent = '✏️'; // Edit icon
+                toggleButton.title = 'Switch to Edit Mode';
                 previewContainer.innerHTML = markdownToHtml(currentContent);
             } else {
                 container.style.display = 'block';
                 previewContainer.style.display = 'none';
-                toggleButton.textContent = 'Preview';
-                view.focus(); // Focus the editor when switching back to edit mode
+                toggleButton.textContent = '👁️'; // Preview icon
+                toggleButton.title = 'Switch to Preview Mode';
+                view.focus();
             }
+            
+            console.log('Toggled to:', isPreviewMode ? 'Preview' : 'Edit');
         }
         
         // Toggle button click handler
         toggleButton.addEventListener('click', function(e) {
-            e.stopPropagation(); // Prevent event bubbling
+            e.stopPropagation();
             toggleMode();
-        });
-        
-        // Click outside handler for CodeMirror editor
-        document.addEventListener('click', function(e) {
-            // Check if click is outside the editor area
-            const editorArea = container.parentNode; // The .note-editor section
-            const clickedInsideEditor = container.contains(e.target) || 
-                                      previewContainer.contains(e.target) || 
-                                      toggleButton.contains(e.target) ||
-                                      editorArea.querySelector('#noteTitle').contains(e.target) ||
-                                      editorArea.querySelector('.editor-buttons').contains(e.target);
-            
-            // Don't toggle if clicking on spoilers, password content, or links
-            const isInteractiveElement = e.target.classList.contains('spoiler') ||
-                                       e.target.classList.contains('password-content') ||
-                                       e.target.tagName === 'A' ||
-                                       e.target.closest('.spoiler') ||
-                                       e.target.closest('.password-content') ||
-                                       e.target.closest('a');
-            
-            if (!clickedInsideEditor && !isInteractiveElement) {
-                // Only toggle to preview mode if we're currently in edit mode
-                if (!isPreviewMode) {
-                    toggleMode();
-                }
-            }
-        });
-        
-        // Click on preview to go back to edit mode
-        previewContainer.addEventListener('click', function(e) {
-            // Don't switch to edit mode if clicking on interactive elements
-            if (e.target.classList.contains('spoiler') || 
-                e.target.classList.contains('password-content') ||
-                e.target.tagName === 'A' ||
-                e.target.closest('.spoiler') ||
-                e.target.closest('.password-content') ||
-                e.target.closest('a')) {
-                e.stopPropagation();
-                return; // Exit early, don't toggle mode
-            }
-            
-            e.stopPropagation(); // Prevent event bubbling
-            if (isPreviewMode) {
-                toggleMode();
-            }
         });
         
         markdownEditor = {
             getRawMarkdown: () => currentContent,
             setContent: (content) => {
+                const oldContent = currentContent;
                 currentContent = content || '';
                 view.dispatch({
                     changes: {
@@ -571,6 +599,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                         insert: currentContent
                     }
                 });
+                
+                if (oldContent !== currentContent) {
+                    saveToUndoStack(oldContent);
+                }
             },
             updateTheme: () => {
                 const newState = view.state.reconfigure({
@@ -580,7 +612,16 @@ document.addEventListener('DOMContentLoaded', async function() {
                         ...getTheme(),
                         EditorView.updateListener.of((update) => {
                             if (update.docChanged) {
+                                const oldContent = currentContent;
                                 currentContent = update.state.doc.toString();
+                                
+                                clearTimeout(changeTimeout);
+                                changeTimeout = setTimeout(() => {
+                                    if (oldContent !== currentContent) {
+                                        saveToUndoStack(oldContent);
+                                    }
+                                }, 500);
+                                
                                 if (isPreviewMode) {
                                     previewContainer.innerHTML = markdownToHtml(currentContent);
                                 }
@@ -591,7 +632,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 view.setState(newState);
             },
             focus: () => view.focus(),
-            toggleMode: toggleMode // Add this line to expose the toggle function
+            toggleMode: toggleMode
         };
         
         console.log('CodeMirror editor setup complete');
@@ -632,24 +673,103 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
     
+    // Add event listeners for undo/redo buttons
+    document.getElementById('undoButton').addEventListener('click', undo);
+    document.getElementById('redoButton').addEventListener('click', redo);
+    
     // Initial render
     renderNotesList();
     
+    // Initialize undo/redo buttons state
+    updateUndoRedoButtons();
+    
     console.log('Initialization complete');
+});
+
+// Spoiler toggle functionality
+function toggleSpoiler(element) {
+    element.classList.toggle('revealed');
+}
+
+// SINGLE unified event handler for all interactions
+document.addEventListener('click', function(event) {
+    // Handle spoiler clicks with highest priority
+    if (event.target.classList.contains('spoiler')) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        toggleSpoiler(event.target);
+        return false;
+    }
     
-    // After setting up the markdown editor, add keyboard event listener
+    // Handle password content
+    if (event.target.classList.contains('password-content')) {
+        event.target.classList.toggle('revealed');
+        event.stopPropagation();
+        return;
+    }
     
-    // Global keyboard event listener for Escape key
-    document.addEventListener('keydown', function(e) {
-        // Check if Escape key is pressed
-        if (e.key === 'Escape') {
-            // Prevent default behavior
-            e.preventDefault();
-            
-            // Only toggle if markdownEditor exists and has the toggle functionality
-            if (markdownEditor && typeof markdownEditor.toggleMode === 'function') {
+    // Handle links - don't interfere
+    if (event.target.tagName === 'A') {
+        event.stopPropagation();
+        return;
+    }
+    
+    // Skip if inside interactive elements
+    if (event.target.closest('.spoiler') || event.target.closest('.password-content') || event.target.closest('a')) {
+        return;
+    }
+    
+    // Handle editor mode switching for click-outside
+    if (markdownEditor && typeof markdownEditor.toggleMode === 'function') {
+        const editorContainer = document.getElementById('markdownEditor');
+        const previewContainer = document.querySelector('.markdown-preview');
+        const toggleButton = document.getElementById('modeToggleButton'); // Use the new ID
+        const noteTitle = document.getElementById('noteTitle');
+        const headerToolbar = document.querySelector('.editor-toolbar');
+        const sidebar = document.querySelector('.notes-sidebar');
+        
+        // Check if click is inside any editor-related area
+        const isInsideEditorArea = 
+            (editorContainer && editorContainer.contains(event.target)) ||
+            (previewContainer && previewContainer.contains(event.target)) ||
+            (toggleButton && toggleButton.contains(event.target)) ||
+            (noteTitle && noteTitle.contains(event.target)) ||
+            (headerToolbar && headerToolbar.contains(event.target)) ||
+            (sidebar && sidebar.contains(event.target));
+        
+        // Only toggle to preview if clicking completely outside and not already in preview
+        if (!isInsideEditorArea) {
+            const isInPreview = editorContainer && editorContainer.style.display === 'none';
+            if (!isInPreview) {
                 markdownEditor.toggleMode();
             }
         }
-    });
+    }
+});
+
+// SINGLE keyboard event handler
+document.addEventListener('keydown', function(e) {
+    // Ctrl+Z for undo
+    if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+        return;
+    }
+    
+    // Ctrl+Y or Ctrl+Shift+Z for redo
+    if ((e.ctrlKey && e.key === 'y') || (e.ctrlKey && e.shiftKey && e.key === 'z')) {
+        e.preventDefault();
+        redo();
+        return;
+    }
+    
+    // Escape key for toggle
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        if (markdownEditor && typeof markdownEditor.toggleMode === 'function') {
+            markdownEditor.toggleMode();
+        }
+        return;
+    }
 });
