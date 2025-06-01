@@ -8,11 +8,52 @@
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    overflow-y: auto;
-    height: calc(100vh - 200px); /* Better height calculation */
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden; /* Hide horizontal scrollbar */
+    height: calc(480px + 60px + 22px); /* Editor height + title bar height + precise gap */
+    max-height: calc(480px + 60px + 22px); /* Ensure it doesn't exceed combined height */
     position: sticky;
     top: 20px;
     box-sizing: border-box;
+    /* Custom scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: var(--button-background) var(--border-color);
+}
+
+/* Custom scrollbar for webkit browsers */
+.notes-sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.notes-sidebar::-webkit-scrollbar-track {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.notes-sidebar::-webkit-scrollbar-thumb {
+    background: var(--button-background);
+    border-radius: 4px;
+}
+
+.notes-sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--button-hover);
+}
+
+/* Dark mode scrollbar */
+body.dark-mode .notes-sidebar::-webkit-scrollbar-track {
+    background: var(--dark-border-color);
+}
+
+body.dark-mode .notes-sidebar::-webkit-scrollbar-thumb {
+    background: var(--dark-button-background);
+}
+
+body.dark-mode .notes-sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--dark-button-hover);
+}
+
+body.dark-mode .notes-sidebar {
+    scrollbar-color: var(--dark-button-background) var(--dark-border-color);
 }
 
 .notes-sidebar button {

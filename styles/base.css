@@ -31,7 +31,7 @@ body {
     flex-direction: column;
     min-height: 100vh;
     padding: 0 40px;
-    padding-top: 80px;
+    padding-top: 10px; /* Reduced from 40px to move body higher */
     box-sizing: border-box;
 }
 
@@ -39,14 +39,14 @@ body {
 .app-container {
     display: flex;
     gap: 40px;
-    padding: 0; /* Remove padding since body already has 40px horizontal padding */
+    padding: 0;
     max-width: 100%;
     width: 100%;
     justify-content: space-between;
     align-items: flex-start;
     flex-wrap: wrap;
     box-sizing: border-box;
-    margin-top: 30px;
+    margin-top: 5px; /* Reduced from 10px to move body higher */
 }
 
 /* Button Styling - Global defaults */
