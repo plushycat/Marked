@@ -1,0 +1,129 @@
+/* Header CSS - Header styling and layout */
+
+/* Header Styling */
+header.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 40px;
+    background-color: var(--card-background);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-sizing: border-box;
+    gap: 20px;
+}
+
+header .header-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-shrink: 0;
+    min-width: 200px; /* Ensure minimum width */
+}
+
+header .header-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 2; /* Give toolbar more space */
+    max-width: 500px; /* Set a reasonable max width */
+    padding-left: 130px;
+}
+
+header .header-right {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    min-width: 80px; /* Ensure minimum width */
+    margin-left: auto; /* Pushes the dark mode button as far right as possible */
+    justify-content: flex-end; /* Align content to the right */
+    position: relative;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 500;
+    color: var(--text-color);
+    font-family: 'Roboto', sans-serif;
+}
+
+header p {
+    margin: 10px 0 0;
+    font-size: 1.2rem;
+    color: var(--text-color);
+}
+
+/* Help button styling */
+.help-btn {
+    margin-right: 18px;
+    font-size: 1.2rem;
+    background: transparent;
+    color: inherit;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.help-btn:hover,
+.help-btn:focus {
+    background: rgba(0,0,0,0.06);
+}
+
+.help-icon-dark { display: none; }
+body.dark-mode .help-icon-light { display: none; }
+body.dark-mode .help-icon-dark { display: inline; }
+
+.help-icon-light,
+.help-icon-dark {
+    width: 48px !important;
+    height: 48px !important;
+    vertical-align: middle;
+}
+
+/* Responsive header adjustments */
+@media (max-width: 1024px) {
+    .header-center {
+        flex: 1.5; /* Reduce flex on medium screens */
+        max-width: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    header.app-header {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 20px;
+        align-items: center;
+    }
+    
+    .header-left {
+        text-align: center;
+        min-width: auto;
+    }
+    
+    .header-center {
+        order: 3;
+        width: 100%;
+        max-width: 100%;
+        justify-content: center;
+        flex: none;
+    }
+    
+    .header-right {
+        order: 2;
+        align-self: flex-end;
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        min-width: auto;
+    }
+}

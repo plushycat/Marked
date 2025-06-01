@@ -1,0 +1,83 @@
+/* Dark Mode CSS - Dark mode styling and toggle button */
+
+/* Dark mode variables */
+body.dark-mode {
+    --background-color: var(--dark-background);
+    --text-color: var(--dark-text);
+    --card-background: var(--dark-card-background);
+    --button-background: var(--dark-button-background);
+    --button-hover: var(--dark-button-hover);
+    --border-color: var(--dark-border-color);
+}
+
+body.dark-mode .note-item:hover {
+    background-color: #d3d3d3;
+    color: black;
+}
+
+body.dark-mode #searchInput {
+    background-color: var(--dark-card-background);
+    border-color: var(--dark-border-color);
+    color: var(--dark-text);
+}
+
+/* Dark mode toggle button styling */
+#darkModeToggle {
+    padding: 8px 12px; /* Smaller padding */
+    font-size: 14px; /* Smaller font */
+    border: none;
+    border-radius: 6px; /* Smaller border radius */
+    background-color: var(--button-background);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: auto; /* Don't stretch full width */
+    min-width: auto; /* Remove min-width constraint */
+    height: auto; /* Auto height */
+    display: inline-flex; /* Use inline-flex instead of flex */
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+#darkModeToggle:hover {
+    background-color: var(--button-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow on hover */
+}
+
+#darkModeToggle:active {
+    transform: translateY(0);
+}
+
+/* Dark mode specific styling for the toggle button */
+body.dark-mode #darkModeToggle {
+    background-color: var(--dark-button-background);
+}
+
+body.dark-mode #darkModeToggle:hover {
+    background-color: var(--dark-button-hover);
+}
+
+/* Tooltip styling for dark mode button */
+.dark-mode-btn::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: -38px; /* Show above the button */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 100;
+}
+
+.dark-mode-btn:hover::after {
+    opacity: 1;
+}

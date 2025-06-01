@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module Test</title>
+</head>
+<body>
+    <h1>Module Test</h1>
+    <div id="test-output"></div>
+    
+    <!-- Load modular scripts in dependency order -->
+    <script src="scripts/storage.js"></script>
+    <script src="scripts/markdown.js"></script>
+    <script src="scripts/modals.js"></script>
+    <script src="scripts/notesList.js"></script>
+    <script src="scripts/editor.js"></script>
+    <script src="scripts/darkmode.js"></script>
+    <script src="scripts/events.js"></script>
+    <script src="scripts/main.js"></script>
+    
+    <script>
+        // Test module loading
+        document.addEventListener('DOMContentLoaded', function() {
+            const output = document.getElementById('test-output');
+            const tests = [];
+            
+            // Test if modules are loaded
+            tests.push(`storage module: ${window.storage ? '✅' : '❌'}`);
+            tests.push(`markdown module: ${window.markdown ? '✅' : '❌'}`);
+            tests.push(`modals module: ${window.modals ? '✅' : '❌'}`);
+            tests.push(`notesList module: ${window.notesList ? '✅' : '❌'}`);
+            tests.push(`editor module: ${window.editor ? '✅' : '❌'}`);
+            tests.push(`darkMode module: ${window.darkMode ? '✅' : '❌'}`);
+            tests.push(`events module: ${window.events ? '✅' : '❌'}`);
+            
+            // Test if main functions exist
+            tests.push(`storage.notes: ${window.storage && Array.isArray(window.storage.notes) ? '✅' : '❌'}`);
+            tests.push(`markdown.markdownToHtml: ${window.markdown && typeof window.markdown.markdownToHtml === 'function' ? '✅' : '❌'}`);
+            tests.push(`editor.initializeEditor: ${window.editor && typeof window.editor.initializeEditor === 'function' ? '✅' : '❌'}`);
+            
+            output.innerHTML = '<pre>' + tests.join('\n') + '</pre>';
+        });
+    </script>
+</body>
+</html>

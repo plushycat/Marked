@@ -1,3 +1,9 @@
+/*
+ * This file is the master stylesheet for Marked. 
+ * All layout, structure, and visual rules remain here to preserve the original design.
+ * Modular CSS files (base.css, header.css, etc.) are for overrides or new features only.
+ */
+
 /* Global Styles */
 :root {
     --background-color: #c5f3e3;

@@ -188,19 +188,48 @@ function markdownToHtml(markdownText) {
             const content = match.replace(/<!BLOCKQUOTE!>/g, '').trim();
             return `<blockquote>${content}</blockquote>`;
         })
-        // Handle lists
-        .replace(/^\d+\.\s+(.*)$/gm, '<ol><li>$1</li></ol>')
-        .replace(/<\/ol>\s*<ol>/g, '')
-        .replace(/^[-*+]\s+(.*)$/gm, '<ul><li>$1</li></ul>')
-        .replace(/<\/ul>\s*<ul>/g, '')
+        // Handle lists (supports nesting, both unordered and ordered)
+        .replace(/((?:^(?:\s*)(?:[-*+]|\d+\.)\s+.*\n?)+)/gm, function(listBlock) {
+            const lines = listBlock.trimEnd().split('\n');
+            let html = '';
+            let stack = [];
+            lines.forEach(line => {
+                const match = /^(\s*)([-*+]|\d+\.)\s+(.*)$/.exec(line);
+                if (match) {
+                    const indent = Math.floor(match[1].replace(/\t/g, '  ').length / 2);
+                    const isOrdered = /^\d+\.$/.test(match[2]);
+                    const tag = isOrdered ? 'ol' : 'ul';
+
+                    // Open new list(s) if indent increased
+                    while (stack.length < indent + 1) {
+                        html += `<${tag}>`;
+                        stack.push(tag);
+                    }
+                    // Close list(s) if indent decreased
+                    while (stack.length > indent + 1) {
+                        html += `</${stack.pop()}>`;
+                    }
+                    // If type changed at this level, close and reopen
+                    if (stack[stack.length - 1] !== tag) {
+                        html += `</${stack.pop()}>`;
+                        html += `<${tag}>`;
+                        stack.push(tag);
+                    }
+                    html += `<li>${match[3]}</li>`;
+                }
+            });
+            // Close any remaining open lists
+            while (stack.length) {
+                html += `</${stack.pop()}>`;
+            }
+            return html;
+        })
         // Handle links and images
         .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
         .replace(/!\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<img src="$2" alt="$1" />')
-        // Handle password content
-        .replace(/<ps>(.*?)<\/ps>/g, (match, content) => {
-            return `<span class="password-content">${content}</span>`;
-        })
-        .replace(/<password>(.*?)<\/password>/g, (match, content) => {
+        
+        // Handle password content: p{secret}p or p secret p
+        .replace(/p\s*\{(.*?)\}\s*p/g, (match, content) => {
             return `<span class="password-content">${content}</span>`;
         })
         // Convert remaining lines to paragraphs
@@ -297,6 +326,19 @@ function initializeDarkMode() {
     updateDarkModeButtonIcon(isDarkMode);
 }
 
+// Add this function before DOMContentLoaded
+function getTheme() {
+    if (document.body.classList.contains('dark-mode')) {
+        try {
+            const { oneDark } = require('@codemirror/theme-one-dark');
+            return [oneDark];
+        } catch (e) {
+            return [];
+        }
+    }
+    return [];
+}
+
 // Simple text editor setup (fallback)
 function setupSimpleEditor() {
     const container = document.getElementById('markdownEditor');
@@ -357,8 +399,11 @@ function setupSimpleEditor() {
     });
     
     // Click handler for preview container
-    previewContainer.addEventListener('click', function () {
-        // Only switch if currently in preview mode
+    previewContainer.addEventListener('click', function (event) {
+        // Prevent toggling mode if clicking a spoiler or inside a spoiler
+        if (event.target.closest('.spoiler')) {
+            return;
+        }
         if (globalIsPreviewMode && typeof markdownEditor.toggleMode === 'function') {
             markdownEditor.toggleMode();
         }
@@ -539,8 +584,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
         
         // Click handler for preview container
-        previewContainer.addEventListener('click', function () {
-            // Only switch if currently in preview mode
+        previewContainer.addEventListener('click', function (event) {
+            // Prevent toggling mode if clicking a spoiler or inside a spoiler
+            if (event.target.closest('.spoiler')) {
+                return;
+            }
             if (globalIsPreviewMode && typeof markdownEditor.toggleMode === 'function') {
                 markdownEditor.toggleMode();
             }
@@ -693,6 +741,20 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('undoButton').addEventListener('click', undo);
     document.getElementById('redoButton').addEventListener('click', redo);
     
+    document.getElementById('saveButton').addEventListener('click', function() {
+        showSaveOptionsModal(
+            "Would you like to update the existing note or save as a new note?",
+            function onSave() {
+                saveNote(); // Update existing note
+            },
+            function onCancel() {
+                // Save as new note
+                currentNoteId = null;
+                saveNote();
+            }
+        );
+    });
+    
     // Initial render
     renderNotesList();
     
@@ -720,162 +782,175 @@ if (saveOverlay) {
     });
 }
 
+// Help modal open/close logic - FIXED: Single event handler
+document.getElementById('helpButton').addEventListener('click', function() {
+    document.getElementById('helpModalCheckbox').checked = true;
+    updateHelpModalPreview();
+});
+
+document.getElementById('helpModalCloseBtn').onclick = function() {
+    document.getElementById('helpModalCheckbox').checked = false;
+};
+
+const helpOverlay = document.querySelector('.help-modal-overlay');
+if (helpOverlay) {
+    helpOverlay.addEventListener('click', function () {
+        const helpCheckbox = document.getElementById('helpModalCheckbox');
+        if (helpCheckbox) helpCheckbox.checked = false;
+    });
+}
+
+// FIXED: Close any modal on ESC key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        // Close help modal if open
+        const helpCheckbox = document.getElementById('helpModalCheckbox');
+        if (helpCheckbox && helpCheckbox.checked) {
+            helpCheckbox.checked = false;
+            return;
+        }
+        // Close confirm modal if open
+        const confirmCheckbox = document.getElementById('confirmModalCheckbox');
+        if (confirmCheckbox && confirmCheckbox.checked) {
+            confirmCheckbox.checked = false;
+            return;
+        }
+        // Close save options modal if open
+        const saveOptionsCheckbox = document.getElementById('saveOptionsModalCheckbox');
+        if (saveOptionsCheckbox && saveOptionsCheckbox.checked) {
+            saveOptionsCheckbox.checked = false;
+            return;
+        }
+        // Only toggle editor mode if no modal was open
+        if (markdownEditor && typeof markdownEditor.toggleMode === 'function') {
+            e.preventDefault();
+            markdownEditor.toggleMode();
+        }
+    }
+});
+
+// Dynamically render the Markdown Help preview
+function updateHelpModalPreview() {
+    const example = document.getElementById('helpMarkdownExample');
+    const preview = document.getElementById('helpMarkdownPreview');
+    if (example && preview) {
+        preview.innerHTML = markdownToHtml(example.textContent.trim());
+    }
+}
+
 // Spoiler toggle functionality
 function toggleSpoiler(element) {
+    console.log('Toggling spoiler:', element); // Debug log
     element.classList.toggle('revealed');
 }
 
-// SINGLE unified event handler for all interactions
+// FIXED: Event handler for spoilers and other interactions
 document.addEventListener('click', function(event) {
-    // Handle spoiler clicks with highest priority
-    if (event.target.classList.contains('spoiler')) {
+    // 1. Handle spoiler clicks FIRST and EXIT immediately
+    const spoilerElement = event.target.closest('.spoiler');
+    if (spoilerElement) {
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
-        toggleSpoiler(event.target);
-        return false;
+        toggleSpoiler(spoilerElement);
+        return; // CRITICAL: Exit immediately after handling spoiler
     }
-    
-    // Handle password content
+
+    // 2. Handle password-content (CSS hover only, no click action needed)
     if (event.target.classList.contains('password-content')) {
-        event.target.classList.toggle('revealed');
+        event.preventDefault();
         event.stopPropagation();
         return;
     }
-    
-    // Handle links - don't interfere
+
+    // 3. Handle links - don't interfere
     if (event.target.tagName === 'A') {
         event.stopPropagation();
         return;
     }
-    
-    // Skip if inside interactive elements
-    if (event.target.closest('.spoiler') || event.target.closest('.password-content') || event.target.closest('a')) {
+
+    // 4. Skip if inside password-content or link (but NOT spoilers - already handled above)
+    if (
+        event.target.closest('.password-content') ||
+        event.target.closest('a')
+    ) {
         return;
     }
-    
-    // Handle editor mode switching for click-outside
+
+    // 5. Handle editor mode switching for click-outside
     if (markdownEditor && typeof markdownEditor.toggleMode === 'function') {
         const editorContainer = document.getElementById('markdownEditor');
         const previewContainer = document.querySelector('.markdown-preview');
-        const toggleButton = document.getElementById('modeToggleButton'); // Use the new ID
+        const toggleButton = document.getElementById('modeToggleButton');
         const noteTitle = document.getElementById('noteTitle');
         const headerToolbar = document.querySelector('.editor-toolbar');
         const sidebar = document.querySelector('.notes-sidebar');
-        
-        // Check if click is inside any editor-related area
-        const isInsideEditorArea = 
+
+        const isInsideEditorArea =
             (editorContainer && editorContainer.contains(event.target)) ||
             (previewContainer && previewContainer.contains(event.target)) ||
             (toggleButton && toggleButton.contains(event.target)) ||
             (noteTitle && noteTitle.contains(event.target)) ||
             (headerToolbar && headerToolbar.contains(event.target)) ||
             (sidebar && sidebar.contains(event.target));
-        
-        // Only toggle to preview if clicking completely outside and not already in preview
+
         if (!isInsideEditorArea) {
             const isInPreview = editorContainer && editorContainer.style.display === 'none';
             if (!isInPreview) {
+                markdownEditor.toggleMode();
+            }
+        } else if (previewContainer && previewContainer.contains(event.target)) {
+            // Only toggle mode if clicking directly on preview container, not on interactive elements
+            if (event.target === previewContainer || 
+                (event.target.tagName === 'P' || event.target.tagName === 'DIV') &&
+                !event.target.closest('.spoiler') && 
+                !event.target.closest('.password-content') &&
+                !event.target.closest('a')) {
                 markdownEditor.toggleMode();
             }
         }
     }
 });
 
-// SINGLE keyboard event handler
-document.addEventListener('keydown', function(e) {
-    // Ctrl+Z for undo
-    if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault();
-        undo();
-        return;
-    }
-
-    // Ctrl+Y or Ctrl+Shift+Z for redo
-    if ((e.ctrlKey && e.key === 'y') || (e.ctrlKey && e.shiftKey && e.key === 'z')) {
-        e.preventDefault();
-        redo();
-        return;
-    }
-
-    // Escape key: close modals first, only toggle mode if no modal is open
-    if (e.key === 'Escape') {
-        let modalClosed = false;
-        // Close confirm modal if open
-        const confirmCheckbox = document.getElementById('confirmModalCheckbox');
-        if (confirmCheckbox && confirmCheckbox.checked) {
-            confirmCheckbox.checked = false;
-            modalClosed = true;
-        }
-        // Close save options modal if open
-        const saveOptionsCheckbox = document.getElementById('saveOptionsModalCheckbox');
-        if (saveOptionsCheckbox && saveOptionsCheckbox.checked) {
-            saveOptionsCheckbox.checked = false;
-            modalClosed = true;
-        }
-        // Only toggle mode if no modal was closed
-        if (!modalClosed && markdownEditor && typeof markdownEditor.toggleMode === 'function') {
-            e.preventDefault();
-            markdownEditor.toggleMode();
-        }
-        return;
-    }
-});
-
 function showConfirmModal(message, onConfirm) {
-    document.getElementById('modalMessage').textContent = message;
-    document.getElementById('confirmModalCheckbox').checked = true;
-    const confirmBtn = document.getElementById('modalConfirmBtn');
-    const cancelBtn = document.getElementById('modalCancelBtn');
-    // Remove previous listeners
-    confirmBtn.onclick = null;
-    cancelBtn.onclick = null;
-    confirmBtn.onclick = function() {
-        document.getElementById('confirmModalCheckbox').checked = false;
-        onConfirm();
+    // Show the modal
+    const confirmCheckbox = document.getElementById('confirmModalCheckbox');
+    const modalMessage = document.getElementById('modalMessage');
+    const modalCancelBtn = document.getElementById('modalCancelBtn');
+    const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+
+    if (!confirmCheckbox || !modalMessage || !modalCancelBtn || !modalConfirmBtn) return;
+
+    confirmCheckbox.checked = true;
+    modalMessage.textContent = message;
+
+    // Remove previous listeners to avoid stacking
+    modalCancelBtn.onclick = function() {
+        confirmCheckbox.checked = false;
     };
-    cancelBtn.onclick = function() {
-        document.getElementById('confirmModalCheckbox').checked = false;
+    modalConfirmBtn.onclick = function() {
+        confirmCheckbox.checked = false;
+        if (typeof onConfirm === 'function') onConfirm();
     };
 }
 
-function showSaveOptionsModal(onUpdate, onSaveAsNew) {
-    document.getElementById('saveOptionsModalCheckbox').checked = true;
-    const updateBtn = document.getElementById('saveUpdateBtn');
-    const saveAsNewBtn = document.getElementById('saveAsNewBtn');
-    // Remove previous listeners
-    updateBtn.onclick = null;
-    saveAsNewBtn.onclick = null;
-    updateBtn.onclick = function() {
-        document.getElementById('saveOptionsModalCheckbox').checked = false;
-        onUpdate();
+function showSaveOptionsModal(message, onSave, onCancel) {
+    const saveOptionsCheckbox = document.getElementById('saveOptionsModalCheckbox');
+    const saveModalMessage = document.getElementById('saveOptionsMessage'); // FIXED
+    const saveModalCancelBtn = document.getElementById('saveAsNewBtn');     // FIXED
+    const saveModalSaveBtn = document.getElementById('saveUpdateBtn');      // FIXED
+
+    if (!saveOptionsCheckbox || !saveModalMessage || !saveModalCancelBtn || !saveModalSaveBtn) return;
+
+    saveOptionsCheckbox.checked = true;
+    saveModalMessage.textContent = message;
+
+    saveModalCancelBtn.onclick = function() {
+        saveOptionsCheckbox.checked = false;
+        if (typeof onCancel === 'function') onCancel();
     };
-    saveAsNewBtn.onclick = function() {
-        document.getElementById('saveOptionsModalCheckbox').checked = false;
-        onSaveAsNew();
+    saveModalSaveBtn.onclick = function() {
+        saveOptionsCheckbox.checked = false;
+        if (typeof onSave === 'function') onSave();
     };
 }
-
-document.getElementById('saveButton').onclick = function() {
-    showSaveOptionsModal(
-        () => saveNote(), // Update existing
-        () => {
-            // Save as new
-            if (!markdownEditor) return;
-            const noteContent = markdownEditor.getRawMarkdown();
-            const noteTitle = document.getElementById('noteTitle').value.trim();
-            const title = noteTitle || noteContent.split('\n')[0] || 'Untitled Note';
-            const newNote = {
-                id: Date.now(),
-                content: noteContent,
-                title: title,
-                timestamp: Date.now()
-            };
-            notes.push(newNote);
-            currentNoteId = newNote.id;
-            saveNotesToStorage();
-            renderNotesList();
-            loadNoteById(newNote.id);
-        }
-    );
-};

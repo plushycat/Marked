@@ -1,0 +1,77 @@
+/* Base CSS - Global styles, CSS variables, and body layout */
+
+/* Global Styles */
+:root {
+    --background-color: #c5f3e3;
+    --text-color: #333;
+    --card-background: #fff;
+    --button-background: #4caf50;
+    --button-hover: #45a049;
+    --border-color: #e0e0e0;
+
+    /* Dark Mode */
+    --dark-background: #121212;
+    --dark-text: #e0e0e0;
+    --dark-card-background: #1e1e1e;
+    --dark-border-color: #333;
+    --dark-button-background: #3d5afe;
+    --dark-button-hover: #536dfe;
+}
+
+/* Body and Main Container */
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 0 40px;
+    padding-top: 10px; /* Reduced from 40px to move body higher */
+    box-sizing: border-box;
+}
+
+/* Main Layout */
+.app-container {
+    display: flex;
+    gap: 40px;
+    padding: 0;
+    max-width: 100%;
+    width: 100%;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    margin-top: 5px; /* Reduced from 10px to move body higher */
+}
+
+/* Button Styling - Global defaults */
+button {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--button-background);
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: var(--button-hover);
+}
+
+/* Text Formatting */
+#noteInput, #renderedNote {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+#renderedNote p {
+    margin-bottom: 1rem;
+}
