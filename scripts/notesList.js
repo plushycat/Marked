@@ -24,24 +24,33 @@ function renderNotesList() {
         noteItem.className = 'note-item';
         noteItem.textContent = note.title || note.content.split('\n')[0] || 'Untitled Note';
         noteItem.dataset.id = note.id;
-        
+
         // Add timestamp
         const timestamp = document.createElement('span');
         timestamp.className = 'note-timestamp';
         const date = new Date(note.timestamp);
-        // Format: YYYY-MM-DD-T:HH:mm:ss in local timezone
-        const localTimeString = date.getFullYear() + '-' + 
-            String(date.getMonth() + 1).padStart(2, '0') + '-' + 
-            String(date.getDate()).padStart(2, '0') + '-T:' + 
-            String(date.getHours()).padStart(2, '0') + ':' + 
-            String(date.getMinutes()).padStart(2, '0') + ':' + 
+        const localTimeString = date.getFullYear() + '-' +
+            String(date.getMonth() + 1).padStart(2, '0') + '-' +
+            String(date.getDate()).padStart(2, '0') + '-T:' +
+            String(date.getHours()).padStart(2, '0') + ':' +
+            String(date.getMinutes()).padStart(2, '0') + ':' +
             String(date.getSeconds()).padStart(2, '0');
         timestamp.textContent = localTimeString;
         noteItem.appendChild(timestamp);
 
+        // Highlight if selected
+        if (note.id === window.editor?.currentNoteId) {
+            noteItem.classList.add('selected');
+        }
+
         noteItem.addEventListener('click', () => {
             if (window.editor && window.editor.loadNoteById) {
                 window.editor.loadNoteById(note.id);
+
+                // Remove 'selected' from all note items
+                document.querySelectorAll('.note-item.selected').forEach(el => el.classList.remove('selected'));
+                // Add 'selected' to the clicked note
+                noteItem.classList.add('selected');
             }
         });
         notesList.appendChild(noteItem);

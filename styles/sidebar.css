@@ -145,6 +145,23 @@ body.dark-mode .notes-sidebar {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Highlight selected note in sidebar */
+.note-item.selected {
+    background-color: #c5f3e3 !important;
+    border: 2px solid #4caf50 !important;
+    color: #222 !important;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.12);
+    z-index: 1;
+}
+
+body.dark-mode .note-item.selected {
+    background-color: #263238 !important;
+    border: 2px solid #3d5afe !important;
+    color: #fff !important;
+    box-shadow: 0 2px 8px rgba(61, 90, 254, 0.18);
+    z-index: 1;
+}
+
 .note-timestamp {
     font-size: 0.75rem;
     color: #888;

@@ -440,7 +440,7 @@ function loadNoteById(noteId) {
     if (note) {
         document.getElementById('noteTitle').value = note.title || '';
         if (markdownEditor) {
-            clearUndoRedoStacks(); // Clear when loading a new note
+            clearUndoRedoStacks();
             markdownEditor.setContent(note.content);
             // Ensure preview mode is active after loading a note
             if (!globalIsPreviewMode && typeof markdownEditor.toggleMode === 'function') {
@@ -455,8 +455,12 @@ function loadNoteById(noteId) {
                 }
             }
         }
-        document.getElementById('noteTimestamp').textContent = 
+        document.getElementById('noteTimestamp').textContent =
             new Date(note.timestamp).toLocaleString();
+        // Always update sidebar highlight
+        if (window.notesList && window.notesList.renderNotesList) {
+            window.notesList.renderNotesList();
+        }
     }
 }
 
