@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marked</title>
+    <!-- Modular CSS imports -->
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/darkmode.css">
+    <link rel="stylesheet" href="styles/header.css">
+    <link rel="stylesheet" href="styles/sidebar.css">
+    <link rel="stylesheet" href="styles/editor.css">
+    <link rel="stylesheet" href="styles/markdown.css">
+    <link rel="stylesheet" href="styles/modal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@codemirror/view@6/dist/index.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@codemirror/theme-one-dark@6/dist/theme.css">
+    <link rel="icon" type="image/x-icon" href="assets/icon.ico">
+    <style>
+        /* Specific button hover colors for undo/redo */
+        #undoButton:hover {
+            background-color: rgba(103, 58, 183, 0.15);
+            color: #673ab7;
+        }
+
+        #redoButton:hover {
+            background-color: rgba(103, 58, 183, 0.15);
+            color: #673ab7;
+        }
+
+        /* Disabled state for undo/redo buttons */
+        #undoButton:disabled,
+        #redoButton:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        #undoButton:disabled:hover,
+        #redoButton:disabled:hover {
+            background-color: transparent !important;
+            color: var(--text-color) !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="header-left">
+            <h1><b>Marked</b></h1>
+            <p>Simplified markdown note-taking.</p>
+            <div id="userInfo" class="user-info" style="display: none;">
+                <span id="userName">User</span>
+                <button id="logoutBtn" class="logout-btn">Logout</button>
+            </div>
+        </div>
+
+        <div class="header-center">
+            <!-- Move the toolbar to the header -->
+            <!-- Help button as a separate element to the left of the toolbar -->
+            <button id="helpButton" class="help-btn" data-tooltip="Markdown Help" aria-label="Markdown Help">
+                <img src="assets/help_light.png" alt="Markdown Help" class="help-icon help-icon-light">
+                <img src="assets/help_dark.png" alt="Markdown Help" class="help-icon help-icon-dark">
+            </button>
+            <div class="editor-toolbar">
+                <button id="undoButton" data-tooltip="Undo">↶</button>
+                <button id="redoButton" data-tooltip="Redo">↷</button>
+                <button id="saveButton" data-tooltip="Save">💾</button>
+                <button id="deleteButton" data-tooltip="Delete Note">🗑️</button>
+                <button id="clearButton" data-tooltip="Clear Note">🧹</button>
+                <button id="txtButton" data-tooltip="Export as TXT">📄</button>
+                <button id="mdButton" data-tooltip="Export as MD">📝</button>
+                <button id="openFileButton" data-tooltip="Open File">📂</button>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <button id="darkModeToggle" class="dark-mode-btn" data-tooltip="Toggle Dark/Light Mode">🌙</button>
+        </div>
+    </header>
+
+    <main class="app-container">
+        <aside class="notes-sidebar">
+            <input type="text" id="searchInput" placeholder="🔍 Search notes..." />
+            <button id="newNoteButton">📝 New Note</button>
+            <div id="notesList"></div>
+        </aside>
+
+        <section class="note-editor">
+            <!-- Title row with inline toggle button -->
+            <div class="title-row">
+                <input type="text" id="noteTitle" placeholder="📄 Enter note title (optional)" />
+                <button id="modeToggleButton" class="mode-toggle-button" data-tooltip="Preview/Edit">👁️</button>
+            </div>
+
+            <div id="markdownEditor" class="markdown-editor-container"></div>
+
+            <!-- Hidden file input for opening .md or .txt files -->
+            <input type="file" id="fileInput" accept=".txt,.md" style="display: none;" />
+
+            <div id="renderedNote" class="rendered-note" style="display: none;"></div>
+            <div id="noteTimestamp" class="note-timestamp"></div>
+        </section>
+    </main>
+
+    <!-- Confirm Modal -->
+    <input type="checkbox" id="confirmModalCheckbox" class="modal-toggle" hidden>
+    <div class="modal-overlay confirm-modal-overlay"></div>
+    <div class="modal-window" id="confirmModal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Confirm Action</h2>
+            <p id="modalMessage">Are you sure?</p>
+            <div class="modal-actions">
+                <button id="modalCancelBtn" class="modal-btn modal-cancel">Cancel</button>
+                <button id="modalConfirmBtn" class="modal-btn modal-confirm">Yes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Options Modal -->
+    <input type="checkbox" id="saveOptionsModalCheckbox" class="modal-toggle" hidden>
+    <div class="modal-overlay save-modal-overlay"></div>
+    <div class="modal-window" id="saveOptionsModal">
+        <div class="modal-content">
+            <h2 id="saveOptionsTitle">Save Note</h2>
+            <p id="saveOptionsMessage">Would you like to update the existing note or save as a new note?</p>
+            <div class="modal-actions">
+                <button id="saveUpdateBtn" class="modal-btn modal-confirm">Update Existing</button>
+                <button id="saveAsNewBtn" class="modal-btn modal-cancel">Save as New</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <input type="checkbox" id="helpModalCheckbox" class="modal-toggle" hidden>
+    <div class="modal-overlay help-modal-overlay"></div>
+    <div class="modal-window" id="helpModal">
+        <div class="modal-content">
+            <h2>Markdown Guide</h2>
+            <div class="markdown-help-examples">
+                <div>
+                    <b>Markdown</b>
+                    <pre id="helpMarkdownExample">
+# Heading 1
+## Heading 2
+### Heading 3
+#### Heading 4
+##### Heading 5
+
+**Bold**, *italic* and __underline__
+
+- List item 1
+
+[Link](https://example.com)
+
+||spoiler||
+
+p{secret}p
+
+`inline code`
+
+```
+multiline code
+```
+> Blockquote
+                    </pre>
+                </div>
+                <div>
+                    <b>Preview</b>
+                    <div id="helpMarkdownPreview" class="markdown-preview" style="text-align:left;"></div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="helpModalCloseBtn" class="modal-btn modal-cancel">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CodeMirror JavaScript -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/state@6/dist/index.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/view@6/dist/index.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/basic-setup@0.20.0/dist/index.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/lang-markdown@6/dist/index.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/theme-one-dark@6/dist/theme.js"></script>
+
+    <!-- Firebase config must load first -->
+    <script type="module" src="scripts/firebase-config.js"></script>
+
+    <!-- Load storage module first (it's a module) -->
+    <script type="module" src="scripts/storage.js"></script>
+
+    <!-- Load non-module scripts in dependency order -->
+    <script src="scripts/darkmode.js"></script>
+    <script src="scripts/markdown.js"></script>
+    <script src="scripts/modals.js"></script>
+    <script src="scripts/notesList.js"></script>
+    <script src="scripts/editor.js"></script>
+    <script src="scripts/events.js"></script>
+
+    <!-- Main module loads last -->
+    <script type="module" src="scripts/main.js"></script>
+</body>
+
+</html>

@@ -33,7 +33,7 @@ header .header-center {
     align-items: center;
     flex: 2; /* Give toolbar more space */
     max-width: 500px; /* Set a reasonable max width */
-    padding-left: 130px;
+    padding-left: 250px;
 }
 
 header .header-right {
@@ -89,6 +89,66 @@ body.dark-mode .help-icon-dark { display: inline; }
     vertical-align: middle;
 }
 
+/* User info styling */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: 10px;
+}
+
+.user-info span {
+    color: var(--text-color);
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.logout-btn {
+    padding: 6px 10px;
+    font-size: 14px;
+    border: none;
+    border-radius: 6px;
+    background-color: var(--button-background);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: auto;
+    min-width: auto;
+    height: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logout-btn:hover {
+    background-color: var(--button-hover);
+    transform: translateY(-1px);
+}
+
+/* Demo mode indicator */
+.demo-mode-indicator {
+    background-color: #ff9800;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 8px;
+}
+
+/* Dark mode user info */
+body.dark-mode .user-info span {
+    color: var(--dark-text);
+}
+
+body.dark-mode .logout-btn {
+    background-color: var(--dark-button-background);
+}
+
+body.dark-mode .logout-btn:hover {
+    background-color: var(--dark-button-hover);
+}
+
 /* Responsive header adjustments */
 @media (max-width: 1024px) {
     .header-center {
@@ -125,5 +185,17 @@ body.dark-mode .help-icon-dark { display: inline; }
         top: 15px;
         right: 20px;
         min-width: auto;
+    }
+    
+    .user-info {
+        order: 1;
+        position: absolute;
+        top: 15px;
+        left: 20px;
+        margin-right: 0;
+    }
+    
+    .user-info span {
+        display: none; /* Hide name on mobile */
     }
 }

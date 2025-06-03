@@ -1,52 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marked</title>
-    <!-- Modular CSS imports -->
+    <title>Marked - Welcome</title>
     <link rel="stylesheet" href="styles/base.css">
     <link rel="stylesheet" href="styles/darkmode.css">
     <link rel="stylesheet" href="styles/header.css">
-    <link rel="stylesheet" href="styles/sidebar.css">
-    <link rel="stylesheet" href="styles/editor.css">
-    <link rel="stylesheet" href="styles/markdown.css">
     <link rel="stylesheet" href="styles/modal.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@codemirror/view@6/dist/index.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@codemirror/theme-one-dark@6/dist/theme.css">
+    <link rel="stylesheet" href="styles/auth.css">
     <link rel="icon" type="image/x-icon" href="assets/icon.ico">
-    <style>
-        /* Specific button hover colors for undo/redo */
-        #undoButton:hover {
-            background-color: rgba(103, 58, 183, 0.15);
-            color: #673ab7;
-        }
-
-        #redoButton:hover {
-            background-color: rgba(103, 58, 183, 0.15);
-            color: #673ab7;
-        }
-
-        /* Disabled state for undo/redo buttons */
-        #undoButton:disabled,
-        #redoButton:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        #undoButton:disabled:hover,
-        #redoButton:disabled:hover {
-            background-color: transparent !important;
-            color: var(--text-color) !important;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-    </style>
 </head>
-
 <body>
+    <!-- Header matching main app -->
     <header class="app-header">
         <div class="header-left">
             <h1><b>Marked</b></h1>
@@ -54,141 +20,113 @@
         </div>
 
         <div class="header-center">
-            <!-- Move the toolbar to the header -->
-            <!-- Help button as a separate element to the left of the toolbar -->
-            <button id="helpButton" class="help-btn" data-tooltip="Markdown Help" aria-label="Markdown Help">
-                <img src="assets/help_light.png" alt="Markdown Help" class="help-icon help-icon-light">
-                <img src="assets/help_dark.png" alt="Markdown Help" class="help-icon help-icon-dark">
-            </button>
-            <div class="editor-toolbar">
-                <button id="undoButton" data-tooltip="Undo">↶</button>
-                <button id="redoButton" data-tooltip="Redo">↷</button>
-                <button id="saveButton" data-tooltip="Save">💾</button>
-                <button id="deleteButton" data-tooltip="Delete Note">🗑️</button>
-                <button id="clearButton" data-tooltip="Clear Note">🧹</button>
-                <button id="txtButton" data-tooltip="Export as TXT">📄</button>
-                <button id="mdButton" data-tooltip="Export as MD">📝</button>
-                <button id="openFileButton" data-tooltip="Open File">📂</button>
-            </div>
+            <!-- Empty center for consistency -->
         </div>
 
         <div class="header-right">
-            <button id="darkModeToggle" class="dark-mode-btn" data-tooltip="Toggle Dark/Light Mode">🌙</button>
+            <button class="demo-btn" onclick="window.location.href='app.html?demo=true'">
+                Try Demo
+            </button>
+            <button id="authDarkModeToggle" class="dark-mode-btn" data-tooltip="Toggle Dark/Light Mode">🌙</button>
         </div>
     </header>
 
+    <!-- Main content container -->
     <main class="app-container">
-        <aside class="notes-sidebar">
-            <input type="text" id="searchInput" placeholder="🔍 Search notes..." />
-            <button id="newNoteButton">📝 New Note</button>
-            <div id="notesList"></div>
-        </aside>
+        <div class="auth-content">
+            <div class="auth-card">
+                <div class="auth-form-container">
+                    <!-- Login Form -->
+                    <form id="loginForm" class="auth-form active">
+                        <h2>Welcome Back</h2>
+                        
+                        <!-- Google Sign-in Button -->
+                        <button type="button" id="googleSignInBtn" class="auth-btn google-btn">
+                            <svg width="18" height="18" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            Continue with Google
+                        </button>
 
-        <section class="note-editor">
-            <!-- Title row with inline toggle button -->
-            <div class="title-row">
-                <input type="text" id="noteTitle" placeholder="📄 Enter note title (optional)" />
-                <button id="modeToggleButton" class="mode-toggle-button" data-tooltip="Preview/Edit">👁️</button>
+                        <div class="auth-divider">
+                            <span>or</span>
+                        </div>
+
+                        <div class="form-group">
+                            <input type="email" id="loginEmail" name="email" placeholder="Email" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" id="loginPassword" name="password" placeholder="Password" required>
+                        </div>
+                        
+                        <button type="submit" class="auth-btn primary">Sign In</button>
+                        
+                        <p class="auth-switch">
+                            Don't have an account? 
+                            <a href="#" id="showSignup">Create one</a>
+                        </p>
+                    </form>
+
+                    <!-- Sign Up Form -->
+                    <form id="signupForm" class="auth-form">
+                        <h2>Create Account</h2>
+                        
+                        <!-- Google Sign-up Button -->
+                        <button type="button" id="googleSignUpBtn" class="auth-btn google-btn">
+                            <svg width="18" height="18" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            Sign up with Google
+                        </button>
+
+                        <div class="auth-divider">
+                            <span>or</span>
+                        </div>
+
+                        <div class="form-group">
+                            <input type="text" id="signupName" name="name" placeholder="Full Name" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" id="signupEmail" name="email" placeholder="Email" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" id="signupPassword" name="password" placeholder="Password" required>
+                        </div>
+                        
+                        <button type="submit" class="auth-btn primary">Create Account</button>
+                        
+                        <p class="auth-switch">
+                            Already have an account? 
+                            <a href="#" id="showLogin">Sign in</a>
+                        </p>
+                    </form>
+                </div>
             </div>
-
-            <div id="markdownEditor" class="markdown-editor-container"></div>
-
-            <!-- Hidden file input for opening .md or .txt files -->
-            <input type="file" id="fileInput" accept=".txt,.md" style="display: none;" />
-
-            <div id="renderedNote" class="rendered-note" style="display: none;"></div>
-            <div id="noteTimestamp" class="note-timestamp"></div>
-        </section>
+        </div>
     </main>
 
-    <!-- Confirm Modal -->
-    <input type="checkbox" id="confirmModalCheckbox" class="modal-toggle" hidden>
-    <div class="modal-overlay confirm-modal-overlay"></div>
-    <div class="modal-window" id="confirmModal">
-        <div class="modal-content">
-            <h2 id="modalTitle">Confirm Action</h2>
-            <p id="modalMessage">Are you sure?</p>
-            <div class="modal-actions">
-                <button id="modalCancelBtn" class="modal-btn modal-cancel">Cancel</button>
-                <button id="modalConfirmBtn" class="modal-btn modal-confirm">Yes</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Save Options Modal -->
-    <input type="checkbox" id="saveOptionsModalCheckbox" class="modal-toggle" hidden>
-    <div class="modal-overlay save-modal-overlay"></div>
-    <div class="modal-window" id="saveOptionsModal">
-        <div class="modal-content">
-            <h2 id="saveOptionsTitle">Save Note</h2>
-            <p id="saveOptionsMessage">Would you like to update the existing note or save as a new note?</p>
-            <div class="modal-actions">
-                <button id="saveUpdateBtn" class="modal-btn modal-confirm">Update Existing</button>
-                <button id="saveAsNewBtn" class="modal-btn modal-cancel">Save as New</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Help Modal -->
-    <input type="checkbox" id="helpModalCheckbox" class="modal-toggle" hidden>
-    <div class="modal-overlay help-modal-overlay"></div>
-    <div class="modal-window" id="helpModal">
-        <div class="modal-content">
-            <h2>Markdown Guide</h2>
-            <div class="markdown-help-examples">
-                <div>
-                    <b>Markdown</b>
-                    <pre id="helpMarkdownExample">
-# Heading 1
-## Heading 2
-### Heading 3
-#### Heading 4
-##### Heading 5
-
-**Bold**, *italic* and __underline__
-
-- List item 1
-
-[Link](https://example.com)
-
-||spoiler||
-
-p{secret}p
-
-`inline code`
-
-```
-multiline code
-```
-> Blockquote
-                    </pre>
-                </div>
-                <div>
-                    <b>Preview</b>
-                    <div id="helpMarkdownPreview" class="markdown-preview" style="text-align:left;"></div>
+    <!-- Error Modal -->
+    <div id="errorModal" class="modal-overlay" style="display: none;">
+        <div class="modal-window">
+            <div class="modal-content">
+                <h3>Error</h3>
+                <p id="errorMessage"></p>
+                <div class="modal-actions">
+                    <button id="errorModalClose" class="modal-btn modal-cancel">OK</button>
                 </div>
             </div>
-            <div class="modal-actions">
-                <button id="helpModalCloseBtn" class="modal-btn modal-cancel">Close</button>
-            </div>
         </div>
     </div>
 
-    <!-- CodeMirror JavaScript -->    <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/state@6/dist/index.js"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/view@6/dist/index.js"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/basic-setup@0.20.0/dist/index.js"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/lang-markdown@6/dist/index.js"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@codemirror/theme-one-dark@6/dist/theme.js"></script>
-
-    <!-- Load modular scripts in dependency order -->
-    <script src="scripts/storage.js"></script>
-    <script src="scripts/markdown.js"></script>
-    <script src="scripts/modals.js"></script>
-    <script src="scripts/notesList.js"></script>
-    <script src="scripts/editor.js"></script>
+    <!-- Scripts -->
     <script src="scripts/darkmode.js"></script>
-    <script src="scripts/events.js"></script>
-    <script src="scripts/main.js"></script>
+    <script type="module" src="scripts/firebase-config.js"></script>
+    <script type="module" src="scripts/auth.js"></script>
 </body>
-
 </html>

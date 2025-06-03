@@ -304,6 +304,26 @@ async function setupCodeMirrorEditor() {
             parent: container
         });
         
+        // Add auto-save trigger to content changes
+        view.dispatch({
+            effects: EditorView.updateListener.of((update) => {
+                if (update.docChanged) {
+                    currentContent = view.state.doc.toString();
+                    updatePreview(currentContent);
+                    updateUndoRedoButtons();
+                    
+                    // AUTO-SAVE TRIGGER - Add this
+                    clearTimeout(window.autoSaveTimeout);
+                    window.autoSaveTimeout = setTimeout(() => {
+                        if (window.editor && window.editor.saveNote && currentNoteId) {
+                            console.log('Auto-saving note...');
+                            window.editor.saveNote();
+                        }
+                    }, 3000); // Auto-save after 3 seconds of no typing
+                }
+            })
+        });
+        
         markdownEditor = {
             getRawMarkdown: () => currentContent,
             setContent: (content) => {
@@ -360,6 +380,21 @@ async function setupCodeMirrorEditor() {
     }
 }
 
+// Add initialization function that was missing
+async function initializeEditor() {
+    try {
+        // Try CodeMirror first, fallback to simple editor
+        await setupCodeMirrorEditor();
+        console.log('Editor initialized successfully');
+    } catch (error) {
+        console.warn('CodeMirror failed, using simple editor:', error);
+        markdownEditor = setupSimpleEditor();
+    }
+    
+    // Set up initial buttons state
+    updateUndoRedoButtons();
+}
+
 // Load a note by ID
 function loadNoteById(noteId) {
     currentNoteId = noteId;
@@ -388,165 +423,242 @@ function loadNoteById(noteId) {
 }
 
 // Save or update the current note
-function saveNote() {
+async function saveNote() {
     if (!markdownEditor) return;
     
     const noteContent = markdownEditor.getRawMarkdown();
     const noteTitle = document.getElementById('noteTitle').value.trim();
     const title = noteTitle || noteContent.split('\n')[0];
 
+    // If no current note ID, always create new
     if (!currentNoteId) {
-        const newNote = { id: Date.now(), content: noteContent, title: title, timestamp: Date.now() };
-        window.storage.notes.push(newNote);
-        currentNoteId = newNote.id;
-    } else {
-        const note = window.storage.notes.find(n => n.id === currentNoteId);
-        if (note) {
-            note.content = noteContent;
-            note.title = title;
-            note.timestamp = Date.now();
+        const newNote = { 
+            id: Date.now(), 
+            content: noteContent, 
+            title: title, 
+            timestamp: Date.now() 
+        };
+        
+        try {
+            await window.storage.addNote(newNote);
+            currentNoteId = newNote.id;
+            console.log('New note created:', newNote.id);
+            
+            // Update timestamp display
+            document.getElementById('noteTimestamp').textContent = 
+                new Date(newNote.timestamp).toLocaleString();
+            
+            // Update UI
+            if (!window.storage.isFirestoreMode()) {
+                window.notesList.renderNotesList();
+            }
+        } catch (error) {
+            console.error('Error creating note:', error);
+            alert('Error saving note. Please try again.');
         }
+        return;
     }
-    window.storage.saveNotesToStorage();
-    window.notesList.renderNotesList();
+
+    // If editing existing note, check if content changed significantly
+    const existingNote = window.storage.notes.find(n => n.id === currentNoteId);
+    if (existingNote) {
+        const contentChanged = existingNote.content !== noteContent;
+        const titleChanged = existingNote.title !== title;
+        
+        // If significant changes, show save options modal
+        if (contentChanged || titleChanged) {
+            // Check if this looks like a completely different note
+            const isSignificantChange = 
+                Math.abs(noteContent.length - existingNote.content.length) > 100 ||
+                noteContent.split(' ').length !== existingNote.content.split(' ').length;
+            
+            if (isSignificantChange && noteContent.trim().length > 50) {
+                // Show save options modal
+                window.modals.showSaveOptionsModal(
+                    'This note has changed significantly. Would you like to update the existing note or save as a new note?',
+                    async () => {
+                        // Update existing note
+                        await updateExistingNote(currentNoteId, noteContent, title);
+                    },
+                    async () => {
+                        // Save as new note
+                        await saveAsNewNote(noteContent, title);
+                    }
+                );
+                return;
+            }
+        }
+        
+        // For minor changes, just update existing note
+        await updateExistingNote(currentNoteId, noteContent, title);
+    }
+}
+
+// Helper function to update existing note
+async function updateExistingNote(noteId, content, title) {
+    try {
+        const existingNote = window.storage.notes.find(n => n.id === noteId);
+        if (existingNote) {
+            const updatedNote = {
+                ...existingNote,
+                content: content,
+                title: title,
+                timestamp: Date.now()
+            };
+            
+            await window.storage.updateNote(noteId, updatedNote);
+            console.log('Note updated:', noteId);
+            
+            // Update timestamp display
+            document.getElementById('noteTimestamp').textContent = 
+                new Date(updatedNote.timestamp).toLocaleString();
+            
+            // Update UI
+            if (!window.storage.isFirestoreMode()) {
+                window.notesList.renderNotesList();
+            }
+        }
+    } catch (error) {
+        console.error('Error updating note:', error);
+        alert('Error updating note. Please try again.');
+    }
+}
+
+// Helper function to save as new note
+async function saveAsNewNote(content, title) {
+    try {
+        const newNote = { 
+            id: Date.now(), 
+            content: content, 
+            title: title, 
+            timestamp: Date.now() 
+        };
+        
+        await window.storage.addNote(newNote);
+        currentNoteId = newNote.id;
+        console.log('New note created from existing:', newNote.id);
+        
+        // Update timestamp display
+        document.getElementById('noteTimestamp').textContent = 
+            new Date(newNote.timestamp).toLocaleString();
+        
+        // Update UI
+        if (!window.storage.isFirestoreMode()) {
+            window.notesList.renderNotesList();
+        }
+    } catch (error) {
+        console.error('Error creating new note:', error);
+        alert('Error saving new note. Please try again.');
+    }
 }
 
 // Delete the current note
-function deleteNote() {
-    if (currentNoteId) {
-        window.modals.showConfirmModal("Are you sure you want to delete this note? This cannot be undone.", () => {
-            window.storage.notes = window.storage.notes.filter(n => n.id !== currentNoteId);
-            currentNoteId = null;
-            if (markdownEditor) {
-                clearUndoRedoStacks();
-                markdownEditor.setContent('');
-            }
-            document.getElementById('noteTitle').value = '';
-            document.getElementById('noteTimestamp').textContent = '';
-            window.storage.saveNotesToStorage();
-            window.notesList.renderNotesList();
-        });
+async function deleteNote() {
+    if (!currentNoteId) {
+        alert('No note selected to delete.');
+        return;
     }
-}
 
-// Clear the current note
-function clearNote() {
-    if (markdownEditor) {
-        clearUndoRedoStacks();
-        markdownEditor.setContent('');
-        
-        // Update preview if in preview mode
-        if (globalIsPreviewMode) {
-            const previewContainer = document.querySelector('.markdown-preview');
-            if (previewContainer) {
-                previewContainer.innerHTML = ''; // Clear preview content
+    // Find the note to confirm it exists
+    const noteToDelete = window.storage.notes.find(n => n.id === currentNoteId);
+    if (!noteToDelete) {
+        alert('Note not found.');
+        return;
+    }
+
+    const noteTitle = noteToDelete.title || noteToDelete.content.split('\n')[0] || 'Untitled Note';
+    
+    window.modals.showConfirmModal(
+        `Are you sure you want to delete "${noteTitle}"? This cannot be undone.`, 
+        async () => {
+            try {
+                console.log('Deleting note:', currentNoteId);
+                
+                // Delete from storage
+                await window.storage.deleteNote(currentNoteId);
+                
+                // Clear editor
+                const oldNoteId = currentNoteId;
+                currentNoteId = null;
+                
+                if (markdownEditor) {
+                    clearUndoRedoStacks();
+                    markdownEditor.setContent('');
+                }
+                
+                document.getElementById('noteTitle').value = '';
+                document.getElementById('noteTimestamp').textContent = '';
+                
+                console.log('Note deleted successfully:', oldNoteId);
+                
+                // Update notes list immediately for localStorage mode
+                if (!window.storage.isFirestoreMode()) {
+                    window.notesList.renderNotesList();
+                }
+                
+                // Show success feedback
+                console.log('Delete operation completed');
+                
+            } catch (error) {
+                console.error('Error deleting note:', error);
+                alert('Error deleting note: ' + error.message);
             }
         }
-    }
-    document.getElementById('noteTitle').value = '';
-    document.getElementById('noteTimestamp').textContent = '';
+    );
 }
 
-// Create a new note
-function createNewNote() {
-    currentNoteId = null;
-    if (markdownEditor) {
-        clearUndoRedoStacks(); // Clear when creating a new note
-        markdownEditor.setContent('');
-        
-        // Update preview if in preview mode
-        if (globalIsPreviewMode) {
-            const previewContainer = document.querySelector('.markdown-preview');
-            if (previewContainer) {
-                previewContainer.innerHTML = ''; // Clear preview content
-            }
-        }
-    }
-    document.getElementById('noteTitle').value = '';
-    document.getElementById('noteTimestamp').textContent = '';
-}
-
-// Export the current note to .txt format
-function exportNoteTxt() {
-    if (!markdownEditor) return;
-    
-    const noteContent = markdownEditor.getRawMarkdown();
-    const noteTitle = document.getElementById('noteTitle').value.trim() || 'untitled';
-    
-    const blob = new Blob([noteContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${noteTitle}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
-
-// Export the current note to .md format
-function exportNoteMd() {
-    if (!markdownEditor) return;
-    
-    const noteContent = markdownEditor.getRawMarkdown();
-    const noteTitle = document.getElementById('noteTitle').value.trim() || 'untitled';
-    
-    const blob = new Blob([noteContent], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${noteTitle}.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
-
-// Open file function
-function openFile(file) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        if (markdownEditor) {
-            clearUndoRedoStacks();
-            markdownEditor.setContent(e.target.result);
-        }
-        // Extract filename without extension for title
-        const fileName = file.name.replace(/\.[^/.]+$/, "");
-        document.getElementById('noteTitle').value = fileName;
-        currentNoteId = null; // Treat as new note
-    };
-    reader.readAsText(file);
-}
-
-// Initialize editor
-async function initializeEditor() {
-    console.log('Initializing editor...');
-    
-    // Try to setup CodeMirror, fallback to simple editor
-    await setupCodeMirrorEditor();
-    
-    // Initialize undo/redo buttons state
-    updateUndoRedoButtons();
-    
-    console.log('Editor initialization complete');
-}
-
-// Export for use by other modules
+// Export all necessary functions
 window.editor = {
-    get currentNoteId() { return currentNoteId; },
-    set currentNoteId(value) { currentNoteId = value; },
-    markdownEditor: () => markdownEditor,
     initializeEditor,
     loadNoteById,
     saveNote,
     deleteNote,
-    clearNote,
-    createNewNote,
-    exportNoteTxt,
-    exportNoteMd,
-    openFile,
+    createNewNote: () => {
+        currentNoteId = null;
+        if (markdownEditor) {
+            clearUndoRedoStacks();
+            markdownEditor.setContent('');
+        }
+        document.getElementById('noteTitle').value = '';
+        document.getElementById('noteTimestamp').textContent = '';
+    },
+    handleFileOpen: (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (markdownEditor) {
+                    markdownEditor.setContent(e.target.result);
+                }
+                document.getElementById('noteTitle').value = file.name.replace(/\.[^/.]+$/, "");
+            };
+            reader.readAsText(file);
+        }
+    },
+    exportAsTxt: () => {
+        if (markdownEditor) {
+            const content = markdownEditor.getRawMarkdown();
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = (document.getElementById('noteTitle').value || 'note') + '.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    },
+    exportAsMarkdown: () => {
+        if (markdownEditor) {
+            const content = markdownEditor.getRawMarkdown();
+            const blob = new Blob([content], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = (document.getElementById('noteTitle').value || 'note') + '.md';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    },
     undo,
-    redo,
-    updateUndoRedoButtons,
-    clearUndoRedoStacks
+    redo
 };
