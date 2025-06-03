@@ -222,6 +222,23 @@ function setButtonReady(button, text) {
     button.disabled = false;
 }
 
+async function logout() {
+    try {
+        // Check for unsaved changes first
+        if (window.editor && window.editor.checkUnsavedChanges) {
+            const canProceed = await window.editor.checkUnsavedChanges();
+            if (!canProceed) return; // User cancelled logout
+        }
+        
+        await signOut(auth);
+        console.log('User signed out successfully');
+        window.location.reload();
+    } catch (error) {
+        console.error('Error signing out:', error);
+        alert('Error signing out. Please try again.');
+    }
+}
+
 // Export for other modules
 window.authHandler = {
     signOut: () => signOut(window.auth)

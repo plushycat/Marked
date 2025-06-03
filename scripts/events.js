@@ -35,7 +35,7 @@ function setupEventListeners() {
             clearTimeout(window.titleSaveTimeout);
             window.titleSaveTimeout = setTimeout(() => {
                 if (window.editor && window.editor.saveNote) {
-                    window.editor.saveNote(false); // Always false here
+                    window.editor.saveNote(false); // Ensure this is false for auto-save
                 }
             }, 1000);
         });
@@ -43,7 +43,7 @@ function setupEventListeners() {
 
     // Setup toolbar buttons
     setupToolbarButtons();
-
+    
     // File input for opening files
     const fileInput = document.getElementById('fileInput');
     if (fileInput && window.editor) {
@@ -81,6 +81,14 @@ function setupEventListeners() {
 }
 
 function setupToolbarButtons() {
+    // Save button - always pass true for userInitiated
+    const saveBtn = document.getElementById('saveButton');
+    if (saveBtn && window.editor) {
+        saveBtn.addEventListener('click', () => {
+            window.editor.saveNote(true); // Explicitly pass true for user-initiated save
+        });
+    }
+    
     // Undo/Redo buttons
     const undoButton = document.getElementById('undoButton');
     const redoButton = document.getElementById('redoButton');
@@ -91,14 +99,6 @@ function setupToolbarButtons() {
     
     if (redoButton && window.editor) {
         redoButton.addEventListener('click', window.editor.redo);
-    }
-
-    // Save button
-    const saveButton = document.getElementById('saveButton');
-    if (saveButton && window.editor) {
-        saveButton.addEventListener('click', () => {
-            window.editor.saveNote(true); // Only true here
-        });
     }
 
     // Delete button

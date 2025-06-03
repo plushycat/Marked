@@ -170,16 +170,3 @@ window.modals = {
 };
 
 console.log('✅ Modals module loaded and exported to window');
-
-// Example usage of the modals
-window.modals.showSaveOptionsModal(
-    'Would you like to update this note or save as new?',
-    async () => {
-        // Update existing note
-        await updateExistingNote(currentNoteId, noteContent, title);
-    },
-    async () => {
-        // Save as new note
-        await saveAsNewNote(noteContent, title);
-    }
-);

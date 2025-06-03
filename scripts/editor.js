@@ -118,13 +118,23 @@ function setupSimpleEditor() {
     
     container.appendChild(textarea);
     
-    // Add input event listener for undo tracking
+    // Add input event listener for undo tracking AND auto-save
     let inputTimeout;
+    let autoSaveTimeout;
     textarea.addEventListener('input', function() {
         clearTimeout(inputTimeout);
         inputTimeout = setTimeout(() => {
             saveToUndoStack(textarea.value);
         }, 500);
+        
+        // Add auto-save for simple editor
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(() => {
+            if (window.editor && window.editor.saveNote && currentNoteId) {
+                console.log('Auto-saving content (simple editor)...');
+                window.editor.saveNote(false); // false = auto-save (no modal)
+            }
+        }, 3000);
     });
     
     // Create preview container
@@ -227,7 +237,7 @@ async function setupCodeMirrorEditor() {
         // Try to import CodeMirror
         const modules = await Promise.all([
             import('https://cdn.jsdelivr.net/npm/@codemirror/view@6/dist/index.js'),
-            import('https://cdn.jsdelivr.net/npm/@codemirror/state@6/dist/index.js'),
+            import('https://cdn.jsdelivr.net/npm/@codemirror/state@6.2.0/dist/index.js'),
             import('https://cdn.jsdelivr.net/npm/@codemirror/basic-setup@0.20.0/dist/index.js'),
             import('https://cdn.jsdelivr.net/npm/@codemirror/lang-markdown@6/dist/index.js'),
             import('https://cdn.jsdelivr.net/npm/@codemirror/theme-one-dark@6/dist/theme.js')
@@ -341,12 +351,12 @@ async function setupCodeMirrorEditor() {
                     updatePreview(currentContent);
                     updateUndoRedoButtons();
                     
-                    // AUTO-SAVE TRIGGER - Add this
+                    // Add content auto-save (silent)
                     clearTimeout(window.autoSaveTimeout);
                     window.autoSaveTimeout = setTimeout(() => {
                         if (window.editor && window.editor.saveNote && currentNoteId) {
-                            console.log('Auto-saving note...');
-                            window.editor.saveNote();
+                            console.log('Auto-saving content...');
+                            window.editor.saveNote(false); // false = auto-save (no modal)
                         }
                     }, 3000); // Auto-save after 3 seconds of no typing
                 }
@@ -452,6 +462,11 @@ function loadNoteById(noteId) {
 
 // Save or update the current note
 async function saveNote(userInitiated = false) {
+    // Only allow modal if explicitly from Save button
+    if (userInitiated && document.activeElement?.id !== 'saveButton') {
+        userInitiated = false;
+    }
+    console.log('saveNote called. userInitiated:', userInitiated, 'Stack:', new Error().stack);
     if (!markdownEditor) return;
     
     const noteContent = markdownEditor.getRawMarkdown();
@@ -660,12 +675,38 @@ function setupSpoilerDelegation() {
     });
 }
 
+// Check for unsaved changes before logout
+function checkUnsavedChanges() {
+    if (!markdownEditor || !currentNoteId) return Promise.resolve(true);
+
+    const currentContent = markdownEditor.getRawMarkdown();
+    const currentTitle = document.getElementById('noteTitle').value.trim();
+
+    // Get the existing note to compare
+    const existingNote = window.storage.notes.find(n => n.id === currentNoteId);
+    if (!existingNote) return Promise.resolve(true);
+
+    // Check if content or title has changed
+    const contentChanged = currentContent !== existingNote.content;
+    const titleChanged = currentTitle !== existingNote.title;
+
+    if (contentChanged || titleChanged) {
+        // Auto-save changes and proceed, NO MODAL
+        return updateExistingNote(currentNoteId, currentContent, currentTitle || currentContent.split('\n')[0])
+            .then(() => true)
+            .catch(() => true); // Even if save fails, allow logout
+    }
+
+    return Promise.resolve(true);
+}
+
 // Export all necessary functions
 window.editor = {
     initializeEditor,
     loadNoteById,
     saveNote,
     deleteNote,
+    checkUnsavedChanges, // Add this export
     createNewNote: () => {
         currentNoteId = null;
         if (markdownEditor) {
