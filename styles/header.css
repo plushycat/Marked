@@ -33,7 +33,7 @@ header .header-center {
     align-items: center;
     flex: 2; /* Give toolbar more space */
     max-width: 500px; /* Set a reasonable max width */
-    padding-left: 250px;
+    padding-left: 150px; /* Reduced from 250px to move left */
 }
 
 header .header-right {
