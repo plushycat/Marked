@@ -35,7 +35,7 @@ function setupEventListeners() {
             clearTimeout(window.titleSaveTimeout);
             window.titleSaveTimeout = setTimeout(() => {
                 if (window.editor && window.editor.saveNote) {
-                    window.editor.saveNote();
+                    window.editor.saveNote(false); // Always false here
                 }
             }, 1000);
         });
@@ -52,6 +52,30 @@ function setupEventListeners() {
 
     // Modal event listeners
     setupModalEventListeners();
+    
+    // Global keyboard shortcuts - ESC key for preview mode (from working backup)
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            // Toggle preview/edit mode on ESC
+            if (
+                window.editor &&
+                window.editor.markdownEditor &&
+                typeof window.editor.markdownEditor.toggleMode === 'function'
+            ) {
+                event.preventDefault();
+                event.stopPropagation();
+                window.editor.markdownEditor.toggleMode();
+                return;
+            }
+            
+            // Handle ESC for modals if not in preview mode
+            const openModals = document.querySelectorAll('input[type="checkbox"]:checked[id$="ModalCheckbox"]');
+            if (openModals.length > 0) {
+                openModals.forEach(modal => modal.checked = false);
+                event.preventDefault();
+            }
+        }
+    });
     
     console.log('Event listeners setup complete');
 }
@@ -72,7 +96,9 @@ function setupToolbarButtons() {
     // Save button
     const saveButton = document.getElementById('saveButton');
     if (saveButton && window.editor) {
-        saveButton.addEventListener('click', window.editor.saveNote);
+        saveButton.addEventListener('click', () => {
+            window.editor.saveNote(true); // Only true here
+        });
     }
 
     // Delete button

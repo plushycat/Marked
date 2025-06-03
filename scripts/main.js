@@ -46,25 +46,16 @@ function initializeAuthCheck() {
     // Check authentication first
     onAuthStateChanged(window.auth, (user) => {
         if (!user) {
-            // No user signed in, redirect to login
-            console.log('No user signed in, redirecting to login...');
             window.location.href = 'index.html';
             return;
         }
-        
-        console.log('User signed in:', user.email);
-        
-        // Initialize storage first, then initialize app
+        // Initialize storage first, then initialize app after notes are loaded
         if (window.storage && window.storage.initializeStorage) {
-            window.storage.initializeStorage(user);
+            window.storage.initializeStorage(user, () => {
+                showUserInfo(user);
+                initializeApp();
+            });
         }
-        
-        showUserInfo(user);
-        
-        // Small delay to ensure storage is initialized
-        setTimeout(() => {
-            initializeApp();
-        }, 100);
     });
 }
 

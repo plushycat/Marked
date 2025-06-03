@@ -21,25 +21,18 @@ function showConfirmModal(message, onConfirm) {
     };
 }
 
-function showSaveOptionsModal(message, onSave, onCancel) {
+function showSaveOptionsModal(message, onUpdate, onSaveAsNew) {
     const saveOptionsCheckbox = document.getElementById('saveOptionsModalCheckbox');
     const saveModalMessage = document.getElementById('saveOptionsMessage');
-    const saveModalCancelBtn = document.getElementById('saveAsNewBtn');
-    const saveModalSaveBtn = document.getElementById('saveUpdateBtn');
 
-    if (!saveOptionsCheckbox || !saveModalMessage || !saveModalCancelBtn || !saveModalSaveBtn) return;
+    if (!saveOptionsCheckbox || !saveModalMessage) return;
 
     saveOptionsCheckbox.checked = true;
     saveModalMessage.textContent = message;
 
-    saveModalCancelBtn.onclick = function() {
-        saveOptionsCheckbox.checked = false;
-        if (typeof onCancel === 'function') onCancel();
-    };
-    saveModalSaveBtn.onclick = function() {
-        saveOptionsCheckbox.checked = false;
-        if (typeof onSave === 'function') onSave();
-    };
+    // Store the actions for the button handlers
+    currentSaveAction = onUpdate;
+    currentSaveAsNewAction = onSaveAsNew;
 }
 
 // Store current confirm action for the event handlers
@@ -115,17 +108,32 @@ function showSaveOptionsModalWithActions(message, onSave, onSaveAsNew) {
     console.log('Showing save options modal:', message);
     currentSaveAction = onSave;
     currentSaveAsNewAction = onSaveAsNew;
-    
+
     const saveOptionsCheckbox = document.getElementById('saveOptionsModalCheckbox');
     const saveModalMessage = document.getElementById('saveOptionsMessage');
+    const saveModalCancelBtn = document.getElementById('saveAsNewBtn');
+    const saveModalSaveBtn = document.getElementById('saveUpdateBtn');
 
-    if (!saveOptionsCheckbox || !saveModalMessage) {
+    if (!saveOptionsCheckbox || !saveModalMessage || !saveModalCancelBtn || !saveModalSaveBtn) {
         console.error('Save options modal elements not found');
         return;
     }
 
     saveOptionsCheckbox.checked = true;
     saveModalMessage.textContent = message;
+
+    // Remove previous listeners to avoid stacking
+    saveModalCancelBtn.onclick = null;
+    saveModalSaveBtn.onclick = null;
+
+    saveModalCancelBtn.onclick = function() {
+        saveOptionsCheckbox.checked = false;
+        if (typeof onSaveAsNew === 'function') onSaveAsNew();
+    };
+    saveModalSaveBtn.onclick = function() {
+        saveOptionsCheckbox.checked = false;
+        if (typeof onSave === 'function') onSave();
+    };
 }
 
 // Dynamically render the Markdown Help preview
@@ -162,3 +170,16 @@ window.modals = {
 };
 
 console.log('✅ Modals module loaded and exported to window');
+
+// Example usage of the modals
+window.modals.showSaveOptionsModal(
+    'Would you like to update this note or save as new?',
+    async () => {
+        // Update existing note
+        await updateExistingNote(currentNoteId, noteContent, title);
+    },
+    async () => {
+        // Save as new note
+        await saveAsNewNote(noteContent, title);
+    }
+);

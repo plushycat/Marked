@@ -17,15 +17,16 @@ let isFirestoreMode = false;
 let unsubscribeNotes = null;
 
 // Initialize storage based on auth state
-function initializeStorage(user = null) {
+function initializeStorage(user = null, onNotesReady) {
     if (user && window.db) {
         isFirestoreMode = true;
         console.log('Using Firestore for user:', user.email);
-        setupFirestoreListener(user);
+        setupFirestoreListener(user, onNotesReady);
     } else {
         isFirestoreMode = false;
         console.log('Using localStorage (demo mode)');
         loadNotesFromLocalStorage();
+        if (typeof onNotesReady === 'function') onNotesReady();
     }
 }
 
@@ -41,15 +42,15 @@ function loadNotesFromLocalStorage() {
 }
 
 // Setup Firestore real-time listener
-function setupFirestoreListener(user) {
+function setupFirestoreListener(user, onFirstSnapshot) {
     if (unsubscribeNotes) {
         unsubscribeNotes();
     }
 
     const notesRef = collection(window.db, 'users', user.uid, 'notes');
-    // Use 'timestamp' instead of 'updatedAt' to match your note structure
     const q = query(notesRef, orderBy('timestamp', 'desc'));
-    
+
+    let firstSnapshot = true;
     unsubscribeNotes = onSnapshot(q, (snapshot) => {
         notes = [];
         snapshot.forEach((doc) => {
@@ -59,17 +60,21 @@ function setupFirestoreListener(user) {
                 ...data
             });
         });
-        
-        // Trigger notes list update if the function exists
-        if (window.notesList && window.notesList.updateNotesList) {
-            window.notesList.updateNotesList();
+
+        window.storage.notes = notes;
+
+        if (window.notesList && window.notesList.renderNotesList) {
+            window.notesList.renderNotesList();
         }
-        
+
+        if (firstSnapshot && typeof onFirstSnapshot === 'function') {
+            firstSnapshot = false;
+            onFirstSnapshot();
+        }
+
         console.log('Notes synced from Firestore:', notes.length);
     }, (error) => {
         console.error('Error listening to notes:', error);
-        // Fallback to localStorage if Firestore fails
-        console.log('Falling back to localStorage...');
         isFirestoreMode = false;
         loadNotesFromLocalStorage();
     });
@@ -156,7 +161,7 @@ async function deleteNote(noteId) {
     
     if (isFirestoreMode) {
         try {
-            await deleteNoteFromFirestore(noteId);
+            await deleteNoteFromFirestore(noteId.toString());
             console.log('Note deleted from Firestore:', noteId);
         } catch (error) {
             console.error('Firestore delete failed:', error);
@@ -165,7 +170,7 @@ async function deleteNote(noteId) {
     } else {
         // localStorage mode
         const initialLength = notes.length;
-        notes = notes.filter(note => note.id != noteId); // Use != to handle string/number comparison
+        notes = notes.filter(note => note.id.toString() !== noteId.toString()); // Ensure string comparison
         
         console.log(`Filtered notes: ${initialLength} -> ${notes.length}`);
         

@@ -8,6 +8,15 @@ let redoStack = [];
 let maxUndoStackSize = 100;
 let globalIsPreviewMode = false;
 
+// Make globalIsPreviewMode accessible globally (like in the backup)
+window.globalIsPreviewMode = false;
+
+// Update globalIsPreviewMode whenever it changes
+function updateGlobalPreviewMode(isPreview) {
+    globalIsPreviewMode = isPreview;
+    window.globalIsPreviewMode = isPreview;
+}
+
 // Add undo/redo functionality
 function saveToUndoStack(content) {
     // Don't save if content is the same as the last entry
@@ -124,7 +133,7 @@ function setupSimpleEditor() {
     previewContainer.style.display = 'none';
     container.parentNode.insertBefore(previewContainer, container.nextSibling);
     
-    // Use the existing button instead of creating a new one
+    // Use the existing button
     const toggleButton = document.getElementById('modeToggleButton');
     
     let isPreviewMode = false;
@@ -132,39 +141,50 @@ function setupSimpleEditor() {
     // Function to toggle between edit and preview modes
     function toggleMode() {
         isPreviewMode = !isPreviewMode;
-        globalIsPreviewMode = isPreviewMode;
+        updateGlobalPreviewMode(isPreviewMode); // Use the helper function
         
         if (isPreviewMode) {
             container.style.display = 'none';
             previewContainer.style.display = 'block';
-            toggleButton.textContent = '✏️'; // Edit icon
-            toggleButton.title = 'Switch to Edit Mode';
-            previewContainer.innerHTML = window.markdown.markdownToHtml(textarea.value);
+            toggleButton.textContent = '✏️';
+            toggleButton.title = 'Switch to Edit Mode (ESC to exit)';
+            if (window.markdown && window.markdown.markdownToHtml) {
+                previewContainer.innerHTML = window.markdown.markdownToHtml(textarea.value);
+            }
         } else {
             container.style.display = 'block';
             previewContainer.style.display = 'none';
-            toggleButton.textContent = '👁️'; // Preview icon
+            toggleButton.textContent = '👁️';
             toggleButton.title = 'Switch to Preview Mode';
             textarea.focus();
         }
         
-        console.log('Toggled to:', isPreviewMode ? 'Preview' : 'Edit');
+        console.log('Simple Editor - Toggled to:', isPreviewMode ? 'Preview' : 'Edit');
     }
     
     // Toggle button click handler
-    toggleButton.addEventListener('click', function(e) {
-        e.stopPropagation();
-        toggleMode();
-    });
+    if (toggleButton) {
+        toggleButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleMode();
+        });
+    }
     
     // Click handler for preview container
     previewContainer.addEventListener('click', function (event) {
-        // Prevent toggling mode if clicking a spoiler or inside a spoiler
+        // Prevent toggling mode if clicking a spoiler
         if (event.target.closest('.spoiler')) {
             return;
         }
-        if (globalIsPreviewMode && typeof markdownEditor.toggleMode === 'function') {
-            markdownEditor.toggleMode();
+        if (globalIsPreviewMode) {
+            toggleMode();
+        }
+    });
+    
+    // Double-click on textarea to enter preview mode
+    textarea.addEventListener('dblclick', function(event) {
+        if (!isPreviewMode) {
+            toggleMode();
         }
     });
     
@@ -178,7 +198,7 @@ function setupSimpleEditor() {
                 saveToUndoStack(oldContent);
             }
             
-            if (isPreviewMode) {
+            if (isPreviewMode && window.markdown && window.markdown.markdownToHtml) {
                 previewContainer.innerHTML = window.markdown.markdownToHtml(textarea.value);
             }
         },
@@ -238,23 +258,25 @@ async function setupCodeMirrorEditor() {
         // Function to toggle between edit and preview modes
         function toggleMode() {
             isPreviewMode = !isPreviewMode;
-            globalIsPreviewMode = isPreviewMode;
+            updateGlobalPreviewMode(isPreviewMode); // Use the helper function
             
             if (isPreviewMode) {
                 container.style.display = 'none';
                 previewContainer.style.display = 'block';
-                toggleButton.textContent = '✏️'; // Edit icon
-                toggleButton.title = 'Switch to Edit Mode';
-                previewContainer.innerHTML = window.markdown.markdownToHtml(currentContent);
+                toggleButton.textContent = '✏️';
+                toggleButton.title = 'Switch to Edit Mode (ESC to exit)';
+                if (window.markdown && window.markdown.markdownToHtml) {
+                    previewContainer.innerHTML = window.markdown.markdownToHtml(currentContent);
+                }
             } else {
                 container.style.display = 'block';
                 previewContainer.style.display = 'none';
-                toggleButton.textContent = '👁️'; // Preview icon
+                toggleButton.textContent = '👁️';
                 toggleButton.title = 'Switch to Preview Mode';
                 view.focus();
             }
             
-            console.log('Toggled to:', isPreviewMode ? 'Preview' : 'Edit');
+            console.log('CodeMirror Editor - Toggled to:', isPreviewMode ? 'Preview' : 'Edit');
         }
         
         // Toggle button click handler
@@ -265,12 +287,19 @@ async function setupCodeMirrorEditor() {
         
         // Click handler for preview container
         previewContainer.addEventListener('click', function (event) {
-            // Prevent toggling mode if clicking a spoiler or inside a spoiler
+            // Prevent toggling mode if clicking a spoiler
             if (event.target.closest('.spoiler')) {
                 return;
             }
-            if (globalIsPreviewMode && typeof markdownEditor.toggleMode === 'function') {
-                markdownEditor.toggleMode();
+            if (globalIsPreviewMode) {
+                toggleMode();
+            }
+        });
+        
+        // Double-click on editor to enter preview mode
+        container.addEventListener('dblclick', function(event) {
+            if (!isPreviewMode) {
+                toggleMode();
             }
         });
         
@@ -383,16 +412,15 @@ async function setupCodeMirrorEditor() {
 // Add initialization function that was missing
 async function initializeEditor() {
     try {
-        // Try CodeMirror first, fallback to simple editor
         await setupCodeMirrorEditor();
         console.log('Editor initialized successfully');
     } catch (error) {
         console.warn('CodeMirror failed, using simple editor:', error);
         markdownEditor = setupSimpleEditor();
     }
-    
-    // Set up initial buttons state
     updateUndoRedoButtons();
+    setupGlobalPreviewToggle();
+    setupSpoilerDelegation(); 
 }
 
 // Load a note by ID
@@ -423,7 +451,7 @@ function loadNoteById(noteId) {
 }
 
 // Save or update the current note
-async function saveNote() {
+async function saveNote(userInitiated = false) {
     if (!markdownEditor) return;
     
     const noteContent = markdownEditor.getRawMarkdown();
@@ -459,37 +487,19 @@ async function saveNote() {
         return;
     }
 
-    // If editing existing note, check if content changed significantly
-    const existingNote = window.storage.notes.find(n => n.id === currentNoteId);
-    if (existingNote) {
-        const contentChanged = existingNote.content !== noteContent;
-        const titleChanged = existingNote.title !== title;
-        
-        // If significant changes, show save options modal
-        if (contentChanged || titleChanged) {
-            // Check if this looks like a completely different note
-            const isSignificantChange = 
-                Math.abs(noteContent.length - existingNote.content.length) > 100 ||
-                noteContent.split(' ').length !== existingNote.content.split(' ').length;
-            
-            if (isSignificantChange && noteContent.trim().length > 50) {
-                // Show save options modal
-                window.modals.showSaveOptionsModal(
-                    'This note has changed significantly. Would you like to update the existing note or save as a new note?',
-                    async () => {
-                        // Update existing note
-                        await updateExistingNote(currentNoteId, noteContent, title);
-                    },
-                    async () => {
-                        // Save as new note
-                        await saveAsNewNote(noteContent, title);
-                    }
-                );
-                return;
+    // Only show modal if user pressed Save
+    if (userInitiated) {
+        window.modals.showSaveOptionsModal(
+            'Update this note or save as new?',
+            async () => {
+                await updateExistingNote(currentNoteId, noteContent, title);
+            },
+            async () => {
+                await saveAsNewNote(noteContent, title);
             }
-        }
-        
-        // For minor changes, just update existing note
+        );
+    } else {
+        // Auto-save or programmatic save: just update
         await updateExistingNote(currentNoteId, noteContent, title);
     }
 }
@@ -607,6 +617,49 @@ async function deleteNote() {
     );
 }
 
+// Setup global preview toggle
+function setupGlobalPreviewToggle() {
+    document.addEventListener('mousedown', function(event) {
+        // Only act if in edit mode and not already in preview
+        if (!window.globalIsPreviewMode) {
+            // Find editor and preview containers
+            const editorContainer = document.getElementById('markdownEditor');
+            const previewContainer = document.querySelector('.markdown-preview');
+            // Ignore clicks inside editor, preview, modals, or toggle button
+            if (
+                editorContainer.contains(event.target) ||
+                (previewContainer && previewContainer.contains(event.target)) ||
+                event.target.closest('.modal-window, .modal-overlay') ||
+                event.target.closest('#modeToggleButton')
+            ) {
+                return;
+            }
+            // Toggle to preview mode
+            if (window.editor && window.editor.markdownEditor && typeof window.editor.markdownEditor.toggleMode === 'function') {
+                window.editor.markdownEditor.toggleMode();
+            }
+        }
+    });
+}
+
+// Spoiler functionality
+function setupSpoilerDelegation() {
+    document.addEventListener('click', function(event) {
+        // Only handle in preview mode
+        if (!window.globalIsPreviewMode) return;
+        // Only handle spoilers inside .markdown-preview
+        const spoiler = event.target.closest('.spoiler');
+        if (
+            spoiler &&
+            spoiler.closest('.markdown-preview') &&
+            typeof window.markdown?.toggleSpoiler === 'function'
+        ) {
+            event.stopPropagation();
+            window.markdown.toggleSpoiler(spoiler);
+        }
+    });
+}
+
 // Export all necessary functions
 window.editor = {
     initializeEditor,
@@ -628,6 +681,7 @@ window.editor = {
             const reader = new FileReader();
             reader.onload = (e) => {
                 if (markdownEditor) {
+                    clearUndoRedoStacks();
                     markdownEditor.setContent(e.target.result);
                 }
                 document.getElementById('noteTitle').value = file.name.replace(/\.[^/.]+$/, "");
@@ -635,30 +689,8 @@ window.editor = {
             reader.readAsText(file);
         }
     },
-    exportAsTxt: () => {
-        if (markdownEditor) {
-            const content = markdownEditor.getRawMarkdown();
-            const blob = new Blob([content], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = (document.getElementById('noteTitle').value || 'note') + '.txt';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-    },
-    exportAsMarkdown: () => {
-        if (markdownEditor) {
-            const content = markdownEditor.getRawMarkdown();
-            const blob = new Blob([content], { type: 'text/markdown' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = (document.getElementById('noteTitle').value || 'note') + '.md';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-    },
+    get markdownEditor() { return markdownEditor; },
+    get isPreviewMode() { return globalIsPreviewMode; }, // Add this getter
     undo,
     redo
 };
