@@ -236,11 +236,11 @@ async function setupCodeMirrorEditor() {
         
         // Try to import CodeMirror
         const modules = await Promise.all([
-            import('https://cdn.jsdelivr.net/npm/@codemirror/view@6/dist/index.js'),
-            import('https://cdn.jsdelivr.net/npm/@codemirror/state@6.2.0/dist/index.js'),
-            import('https://cdn.jsdelivr.net/npm/@codemirror/basic-setup@0.20.0/dist/index.js'),
-            import('https://cdn.jsdelivr.net/npm/@codemirror/lang-markdown@6/dist/index.js'),
-            import('https://cdn.jsdelivr.net/npm/@codemirror/theme-one-dark@6/dist/theme.js')
+            import('https://esm.sh/@codemirror/view@6'),
+            import('https://esm.sh/@codemirror/state@6.2.0'),
+            import('https://esm.sh/@codemirror/basic-setup@0.20.0'),
+            import('https://esm.sh/@codemirror/lang-markdown@6'),
+            import('https://esm.sh/@codemirror/theme-one-dark@6')
         ]);
         
         const { EditorView } = modules[0];
