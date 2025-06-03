@@ -2,6 +2,7 @@
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 // Your Firebase config for marked-zero project
 const firebaseConfig = {
@@ -16,10 +17,12 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-// Make auth available globally
+// Make auth and db available globally
 window.auth = auth;
+window.db = db;
 
 console.log('Firebase initialized successfully for project:', firebaseConfig.projectId);
 
-export { auth };
+export { auth, db };

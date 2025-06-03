@@ -9,7 +9,8 @@ import {
     query,
     orderBy,
     serverTimestamp,
-    where
+    where,
+    getFirestore
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 let notes = [];
@@ -18,7 +19,21 @@ let unsubscribeNotes = null;
 
 // Initialize storage based on auth state
 function initializeStorage(user = null, onNotesReady) {
-    if (user && window.db) {
+    if (user && window.auth) {
+        // Initialize Firestore database if not already done
+        if (!window.db) {
+            try {
+                window.db = getFirestore();
+                console.log('Firestore database initialized');
+            } catch (error) {
+                console.error('Failed to initialize Firestore:', error);
+                isFirestoreMode = false;
+                loadNotesFromLocalStorage();
+                if (typeof onNotesReady === 'function') onNotesReady();
+                return;
+            }
+        }
+        
         isFirestoreMode = true;
         console.log('Using Firestore for user:', user.email);
         setupFirestoreListener(user, onNotesReady);
@@ -47,37 +62,48 @@ function setupFirestoreListener(user, onFirstSnapshot) {
         unsubscribeNotes();
     }
 
-    const notesRef = collection(window.db, 'users', user.uid, 'notes');
-    const q = query(notesRef, orderBy('timestamp', 'desc'));
+    try {
+        const notesRef = collection(window.db, 'users', user.uid, 'notes');
+        const q = query(notesRef, orderBy('timestamp', 'desc'));
 
-    let firstSnapshot = true;
-    unsubscribeNotes = onSnapshot(q, (snapshot) => {
-        notes = [];
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            notes.push({
-                id: doc.id,
-                ...data
+        let firstSnapshot = true;
+        unsubscribeNotes = onSnapshot(q, (snapshot) => {
+            notes = [];
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                notes.push({
+                    id: doc.id,
+                    ...data
+                });
             });
+
+            window.storage.notes = notes;
+
+            if (window.notesList && window.notesList.renderNotesList) {
+                window.notesList.renderNotesList();
+            }
+
+            if (firstSnapshot && typeof onFirstSnapshot === 'function') {
+                firstSnapshot = false;
+                onFirstSnapshot();
+            }
+
+            console.log('Notes synced from Firestore:', notes.length);
+        }, (error) => {
+            console.error('Error listening to notes:', error);
+            // Show user-visible error instead of silent fallback
+            alert('Failed to sync notes from cloud. Please refresh the page or check your connection.');
+            isFirestoreMode = false;
+            loadNotesFromLocalStorage();
+            if (typeof onFirstSnapshot === 'function') onFirstSnapshot();
         });
-
-        window.storage.notes = notes;
-
-        if (window.notesList && window.notesList.renderNotesList) {
-            window.notesList.renderNotesList();
-        }
-
-        if (firstSnapshot && typeof onFirstSnapshot === 'function') {
-            firstSnapshot = false;
-            onFirstSnapshot();
-        }
-
-        console.log('Notes synced from Firestore:', notes.length);
-    }, (error) => {
-        console.error('Error listening to notes:', error);
+    } catch (error) {
+        console.error('Error setting up Firestore listener:', error);
+        alert('Failed to connect to cloud storage. Please refresh the page.');
         isFirestoreMode = false;
         loadNotesFromLocalStorage();
-    });
+        if (typeof onFirstSnapshot === 'function') onFirstSnapshot();
+    }
 }
 
 // Save notes to appropriate storage
