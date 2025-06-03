@@ -36,25 +36,23 @@ function renderNotesList() {
             String(date.getMinutes()).padStart(2, '0') + ':' +
             String(date.getSeconds()).padStart(2, '0');
         timestamp.textContent = localTimeString;
-        noteItem.appendChild(timestamp);
-
-        // Highlight if selected
-        if (note.id === window.editor?.currentNoteId) {
-            noteItem.classList.add('selected');
-        }
-
-        noteItem.addEventListener('click', () => {
+        noteItem.appendChild(timestamp);        noteItem.addEventListener('click', () => {
             if (window.editor && window.editor.loadNoteById) {
                 window.editor.loadNoteById(note.id);
-
-                // Remove 'selected' from all note items
-                document.querySelectorAll('.note-item.selected').forEach(el => el.classList.remove('selected'));
-                // Add 'selected' to the clicked note
-                noteItem.classList.add('selected');
+                // Also immediately update the highlight
+                if (window.notesList && window.notesList.updateSidebarSelectionHighlight) {
+                    window.notesList.updateSidebarSelectionHighlight(note.id);
+                }
             }
         });
         notesList.appendChild(noteItem);
-    });
+    });    // After rendering, update highlight for the current note
+    if (window.editor && window.editor.getCurrentNoteId && window.notesList && window.notesList.updateSidebarSelectionHighlight) {
+        const currentNoteId = window.editor.getCurrentNoteId();
+        if (currentNoteId) {
+            window.notesList.updateSidebarSelectionHighlight(currentNoteId);
+        }
+    }
 }
 
 // Filter notes function
@@ -98,15 +96,25 @@ function filterNotes() {
             String(date.getMinutes()).padStart(2, '0') + ':' + 
             String(date.getSeconds()).padStart(2, '0');
         timestamp.textContent = localTimeString;
-        noteItem.appendChild(timestamp);
-
-        noteItem.addEventListener('click', () => {
+        noteItem.appendChild(timestamp);        noteItem.addEventListener('click', () => {
             if (window.editor && window.editor.loadNoteById) {
                 window.editor.loadNoteById(note.id);
+                // Also immediately update the highlight
+                if (window.notesList && window.notesList.updateSidebarSelectionHighlight) {
+                    window.notesList.updateSidebarSelectionHighlight(note.id);
+                }
             }
         });
         notesList.appendChild(noteItem);
     });
+    
+    // After filtering, restore the selection highlight if there's an active note
+    if (window.editor && window.editor.getCurrentNoteId && window.notesList && window.notesList.updateSidebarSelectionHighlight) {
+        const currentNoteId = window.editor.getCurrentNoteId();
+        if (currentNoteId) {
+            window.notesList.updateSidebarSelectionHighlight(currentNoteId);
+        }
+    }
 }
 
 // Update notes list (for Firestore real-time updates)
@@ -114,11 +122,31 @@ function updateNotesList() {
     renderNotesList();
 }
 
-// Export for use by other modules
+// Update sidebar selection highlight
+function updateSidebarSelectionHighlight(selectedNoteId) {
+    // Remove 'selected' from all note items
+    document.querySelectorAll('.note-item.selected').forEach(el => el.classList.remove('selected'));
+    
+    // Add 'selected' to the currently selected note
+    if (selectedNoteId) {
+        // Use setTimeout to ensure DOM is ready
+        setTimeout(() => {
+            const selected = document.querySelector(`.note-item[data-id="${selectedNoteId}"]`);
+            if (selected) {
+                selected.classList.add('selected');
+                console.log(`✅ Highlighted note with ID: ${selectedNoteId}`);
+            } else {
+                console.log(`⚠️ Could not find note element with ID: ${selectedNoteId}`);
+            }
+        }, 10);
+    }
+}
+
 window.notesList = {
     renderNotesList: renderNotesList,
     filterNotes: filterNotes,
-    updateNotesList: updateNotesList
+    updateNotesList: updateNotesList,
+    updateSidebarSelectionHighlight: updateSidebarSelectionHighlight
 };
 
 console.log('✅ NotesList module loaded and exported to window');

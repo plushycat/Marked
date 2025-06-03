@@ -458,8 +458,8 @@ function loadNoteById(noteId) {
         document.getElementById('noteTimestamp').textContent =
             new Date(note.timestamp).toLocaleString();
         // Always update sidebar highlight
-        if (window.notesList && window.notesList.renderNotesList) {
-            window.notesList.renderNotesList();
+        if (window.notesList && window.notesList.updateSidebarSelectionHighlight) {
+            window.notesList.updateSidebarSelectionHighlight(noteId);
         }
     }
 }
@@ -490,14 +490,16 @@ async function saveNote(userInitiated = false) {
             await window.storage.addNote(newNote);
             currentNoteId = newNote.id;
             console.log('New note created:', newNote.id);
-            
             // Update timestamp display
             document.getElementById('noteTimestamp').textContent = 
                 new Date(newNote.timestamp).toLocaleString();
-            
             // Update UI
             if (!window.storage.isFirestoreMode()) {
                 window.notesList.renderNotesList();
+            }
+            // Update sidebar highlight for new note
+            if (window.notesList && window.notesList.updateSidebarSelectionHighlight) {
+                window.notesList.updateSidebarSelectionHighlight(currentNoteId);
             }
         } catch (error) {
             console.error('Error creating note:', error);
@@ -545,6 +547,10 @@ async function updateExistingNote(noteId, content, title) {
             // Update UI
             if (!window.storage.isFirestoreMode()) {
                 window.notesList.renderNotesList();
+            }
+            // Update sidebar highlight for updated note
+            if (window.notesList && window.notesList.updateSidebarSelectionHighlight) {
+                window.notesList.updateSidebarSelectionHighlight(noteId);
             }
         }
     } catch (error) {
@@ -624,7 +630,10 @@ async function deleteNote() {
                 if (!window.storage.isFirestoreMode()) {
                     window.notesList.renderNotesList();
                 }
-                
+                // Remove highlight from sidebar after deletion
+                if (window.notesList && window.notesList.updateSidebarSelectionHighlight) {
+                    window.notesList.updateSidebarSelectionHighlight(null);
+                }
                 // Show success feedback
                 console.log('Delete operation completed');
                 
@@ -711,6 +720,7 @@ window.editor = {
     saveNote,
     deleteNote,
     checkUnsavedChanges, // Add this export
+    getCurrentNoteId: () => currentNoteId, // Add this getter function
     createNewNote: () => {
         currentNoteId = null;
         if (markdownEditor) {
@@ -719,6 +729,10 @@ window.editor = {
         }
         document.getElementById('noteTitle').value = '';
         document.getElementById('noteTimestamp').textContent = '';
+        // Clear selection highlight when creating new note
+        if (window.notesList && window.notesList.updateSidebarSelectionHighlight) {
+            window.notesList.updateSidebarSelectionHighlight(null);
+        }
     },
     handleFileOpen: (event) => {
         const file = event.target.files[0];

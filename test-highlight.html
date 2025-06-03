@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Highlight</title>
+    <style>
+        .note-item {
+            padding: 10px;
+            margin: 5px;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+        
+        .note-item.selected {
+            background-color: #e8f5e8 !important;
+            border: 2px solid #4caf50 !important;
+            color: #2e7d32 !important;
+            box-shadow: 0 2px 12px rgba(76, 175, 80, 0.2) !important;
+        }
+    </style>
+</head>
+<body>
+    <h3>Test Note Selection Highlighting</h3>
+    <div id="notesList">
+        <div class="note-item" data-id="1">Note 1</div>
+        <div class="note-item" data-id="2">Note 2</div>
+        <div class="note-item" data-id="3">Note 3</div>
+    </div>
+    
+    <script>
+        function updateSidebarSelectionHighlight(selectedNoteId) {
+            console.log('Highlighting note:', selectedNoteId);
+            // Remove 'selected' from all note items
+            document.querySelectorAll('.note-item.selected').forEach(el => el.classList.remove('selected'));
+            
+            // Add 'selected' to the currently selected note
+            if (selectedNoteId) {
+                const selected = document.querySelector(`.note-item[data-id="${selectedNoteId}"]`);
+                if (selected) {
+                    selected.classList.add('selected');
+                    console.log(`✅ Highlighted note with ID: ${selectedNoteId}`);
+                } else {
+                    console.log(`⚠️ Could not find note element with ID: ${selectedNoteId}`);
+                }
+            }
+        }
+        
+        // Add click handlers
+        document.querySelectorAll('.note-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const noteId = e.target.dataset.id;
+                updateSidebarSelectionHighlight(noteId);
+            });
+        });
+    </script>
+</body>
+</html>
